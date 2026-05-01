@@ -11,7 +11,7 @@ const commentRoutes = require('./commentRoutes');
 const likeRoutes = require('./likeRoutes');
 const favoriteRoutes = require('./favoriteRoutes');
 const reportRoutes = require('./reportRoutes');
-
+const adminRoutes = require('./adminRoutes');
 
 
 
@@ -24,7 +24,7 @@ router.use('/api/comments', commentRoutes);
 router.use('/api/likes', likeRoutes);
 router.use('/api/favorites', favoriteRoutes);
 router.use('/api/reports', reportRoutes);
-
+router.use('/api/admin', adminRoutes);
 
 
 module.exports = router;

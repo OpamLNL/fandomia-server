@@ -1,148 +1,100 @@
-const userModel = require('../models/userModel');
-const gamesModel = require('../models/gamesModel');
-const newsModel = require('../models/workModel');
-const tagsModel = require('../models/tagsModel');
-const commentsModel = require('../models/commentsModel');
-const likesModel = require('../models/likesModel');
+const adminService = require('../services/adminService');
 
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const secretKey = process.env.JWT_SECRET_KEY;
-
-// Users Handlers
-const getUserById = async (req, res) => {
-    try {
-        const user = await userModel.getUserById(req.params.id);
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-        res.status(200).json(user);
-    } catch (error) {
-        console.error('Error getting user by ID:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
+const getStats = async (req, res) => {
+    const stats = await adminService.getStats();
+    res.json(stats);
 };
 
-const getAllUsers = async (req, res) => {
-    try {
-        const users = await userModel.getAllUsers();
-        res.status(200).json(users);
-    } catch (error) {
-        console.error('Error getting all users:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
+const getUsers = async (req, res) => {
+    const users = await adminService.getUsers();
+    res.json(users);
 };
 
-const createUser = async (req, res) => {
-    try {
-        const { username, email, password, avatar, birth_date, bio, phone_number, language, timezone } = req.body;
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = await userModel.createUser({
-            username, email, password: hashedPassword, avatar: avatar || 'default_avatar.png', birth_date, bio, phone_number, language, timezone, status: 'active', last_visit: new Date()
-        });
-        const token = jwt.sign({ id: newUser.id, username: newUser.username }, secretKey, { expiresIn: '24h' });
-        res.status(201).json({ user: newUser, token });
-    } catch (error) {
-        console.error('Error creating user:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
+const searchUsers = async (req, res) => {
+    const users = await adminService.searchUsers(req.query.query);
+    res.json(users);
 };
 
-const updateUser = async (req, res) => {
-    try {
-        const updatedUser = await userModel.updateUser(req.params.id, req.body);
-        res.status(200).json(updatedUser);
-    } catch (error) {
-        console.error('Error updating user:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
+const updateUserRole = async (req, res) => {
+    const result = await adminService.updateUserRole(req.params.id, req.body.role);
+    res.json(result);
+};
+
+const updateUserBlockedStatus = async (req, res) => {
+    const result = await adminService.updateUserBlockedStatus(req.params.id, req.body.is_blocked);
+    res.json(result);
 };
 
 const deleteUser = async (req, res) => {
-    try {
-        await userModel.deleteUser(req.params.id);
-        res.status(204).end();
-    } catch (error) {
-        console.error('Error deleting user:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
+    await adminService.deleteUser(req.params.id);
+    res.json({ success: true });
 };
 
-// Games Handlers
-const getAllGames = async (req, res) => {
-    try {
-        const games = await gamesModel.getAllGames();
-        res.status(200).json(games);
-    } catch (error) {
-        console.error('Error getting all games:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
+const updateWorkStatus = async (req, res) => {
+    const result = await adminService.updateWorkStatus(req.params.id, req.body.status);
+    res.json(result);
 };
 
-const createGame = async (req, res) => {
-    try {
-        const newGame = await gamesModel.createGame(req.body);
-        res.status(201).json(newGame);
-    } catch (error) {
-        console.error('Error creating game:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
+const updatePostStatus = async (req, res) => {
+    const result = await adminService.updatePostStatus(req.params.id, req.body.status);
+    res.json(result);
 };
 
-const updateGame = async (req, res) => {
-    try {
-        const updatedGame = await gamesModel.updateGame(req.params.id, req.body);
-        res.status(200).json(updatedGame);
-    } catch (error) {
-        console.error('Error updating game:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
+const updateCommentStatus = async (req, res) => {
+    const result = await adminService.updateCommentStatus(req.params.id, req.body.status);
+    res.json(result);
 };
 
-const deleteGame = async (req, res) => {
-    try {
-        await gamesModel.deleteGame(req.params.id);
-        res.status(204).end();
-    } catch (error) {
-        console.error('Error deleting game:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
+const deleteWork = async (req, res) => {
+    await adminService.deleteWork(req.params.id);
+    res.json({ success: true });
 };
 
-// Add similar handlers for news, tags, comments, and likes using corresponding models
+const deletePost = async (req, res) => {
+    await adminService.deletePost(req.params.id);
+    res.json({ success: true });
+};
+
+const deleteComment = async (req, res) => {
+    await adminService.deleteComment(req.params.id);
+    res.json({ success: true });
+};
+
+const getReports = async (req, res) => {
+    const reports = await adminService.getReports();
+    res.json(reports);
+};
+
+const getReportsByStatus = async (req, res) => {
+    const reports = await adminService.getReportsByStatus(req.params.status);
+    res.json(reports);
+};
+
+const updateReportStatus = async (req, res) => {
+    const result = await adminService.updateReportStatus(req.params.id, req.body.status);
+    res.json(result);
+};
+
+const deleteReport = async (req, res) => {
+    await adminService.deleteReport(req.params.id);
+    res.json({ success: true });
+};
 
 module.exports = {
-    getUserById,
-    getAllUsers,
-    createUser,
-    updateUser,
+    getStats,
+    getUsers,
+    searchUsers,
+    updateUserRole,
+    updateUserBlockedStatus,
     deleteUser,
-    // News Handlers
-    getAllNews,
-    createNews,
-    updateNews,
-    deleteNews,
-
-    // Games Handlers
-    getAllGames,
-    createGame,
-    updateGame,
-    deleteGame,
-
-    // Tags Handlers
-    getAllTags,
-    createTag,
-    updateTag,
-    deleteTag,
-
-    // Comments Handlers
-    getAllComments,
-    createComment,
-    updateComment,
+    updateWorkStatus,
+    updatePostStatus,
+    updateCommentStatus,
+    deleteWork,
+    deletePost,
     deleteComment,
-
-    // Likes Handlers
-    getAllLikes,
-    addLike,
-    removeLike
+    getReports,
+    getReportsByStatus,
+    updateReportStatus,
+    deleteReport
 };
