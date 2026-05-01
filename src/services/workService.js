@@ -1,5 +1,6 @@
 const workRepository = require('../repositories/workRepository');
 const { WORK_TYPES, createWorkEntity } = require('../models/workModel');
+const { getPagination, buildPaginationResponse } = require('../utils/pagination');
 
 const enrichWork = async (work) => {
     if (!work) return null;
@@ -24,9 +25,20 @@ const enrichWorks = async (works) => {
     return result;
 };
 
-const getAllWorks = async () => {
-    const works = await workRepository.getAllWorks();
-    return await enrichWorks(works);
+const getAllWorks = async (query = {}) => {
+    const { page, limit, offset } = getPagination(query);
+
+    const works = await workRepository.getAllWorks(limit, offset);
+    const total = await workRepository.countWorks();
+
+    const enriched = await enrichWorks(works);
+
+    return buildPaginationResponse({
+        data: enriched,
+        total,
+        page,
+        limit
+    });
 };
 
 const getWorkById = async (id) => {
@@ -110,7 +122,11 @@ const createWork = async (data, user) => {
     return await getWorkById(work.id);
 };
 
-const updateWork = async (id, data) => {
+const updateWork = async (id, data, user) => {
+    if (user?.is_blocked) {
+        throw new Error('Користувач заблокований');
+    }
+
     const existing = await workRepository.getWorkById(id);
 
     if (!existing) {
@@ -126,7 +142,7 @@ const updateWork = async (id, data) => {
     }
 
     await workRepository.updateWork(id, {
-        fandom_id: data.fandom_id,
+        fandom_id: data.fandom_id || existing.fandom_id,
         title: data.title.trim(),
         description: data.description || null,
         type: data.type || existing.type

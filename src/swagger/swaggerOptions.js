@@ -332,18 +332,22 @@ const swaggerOptions = {
                 get: {
                     tags: ['Works'],
                     summary: 'Отримати всі роботи',
+                    parameters: [
+                        {
+                            in: 'query',
+                            name: 'page',
+                            required: false,
+                            schema: { type: 'integer', example: 1 }
+                        },
+                        {
+                            in: 'query',
+                            name: 'limit',
+                            required: false,
+                            schema: { type: 'integer', example: 10 }
+                        }
+                    ],
                     responses: { 200: { description: 'OK' } }
                 },
-                post: {
-                    tags: ['Works'],
-                    summary: 'Створити роботу',
-                    security: [{ bearerAuth: [] }],
-                    requestBody: {
-                        required: true,
-                        content: { 'application/json': { schema: { $ref: '#/components/schemas/WorkBody' } } }
-                    },
-                    responses: { 201: { description: 'Created' } }
-                }
             },
             '/api/works/search': {
                 get: {

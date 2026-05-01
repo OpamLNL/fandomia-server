@@ -1,7 +1,7 @@
 const workService = require('../services/workService');
 
 const getAllWorks = async (req, res) => {
-    const works = await workService.getAllWorks();
+    const works = await workService.getAllWorks(req.query);
     res.json(works);
 };
 
@@ -48,7 +48,7 @@ const createWork = async (req, res) => {
 };
 
 const updateWork = async (req, res) => {
-    const work = await workService.updateWork(req.params.id, req.body);
+    const work = await workService.updateWork(req.params.id, req.body, req.user);
     res.json(work);
 };
 
