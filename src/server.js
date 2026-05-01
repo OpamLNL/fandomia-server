@@ -95,10 +95,10 @@ const ipAddress = process.env.DB_IP;
 const server = http.createServer(app);
 
 (async () => {
-    // 👇 ТИМЧАСОВО: заповнення сідами
+    // заповнення сідами
     await initDb({ drop: true, seed: true });
 
-    // 👇 нормальна перевірка
+    // нормальна перевірка
     await checkAndInitDatabase();
 
     server.listen(PORT, ipAddress, () => {
