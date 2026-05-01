@@ -1,0 +1,37 @@
+[
+  { "id": 1, "user_id": 2, "target_type": "work", "target_id": 1, "content": "Дуже крута ідея, реально хотілося б почитати продовження." },
+  { "id": 2, "user_id": 3, "target_type": "work", "target_id": 2, "content": "Дизайн броні виглядає дуже стильно, особливо кольори." },
+  { "id": 3, "user_id": 4, "target_type": "work", "target_id": 3, "content": "Це дуже темний поворот, але цікавий." },
+  { "id": 4, "user_id": 5, "target_type": "work", "target_id": 4, "content": "Теорія звучить логічно, ніколи так не думав." },
+  { "id": 5, "user_id": 6, "target_type": "work", "target_id": 5, "content": "Геральт у твоїй версії ще більш холодний, ніж у каноні." },
+
+  { "id": 6, "user_id": 7, "target_type": "work", "target_id": 6, "content": "Було б круто побачити це як серіал." },
+  { "id": 7, "user_id": 8, "target_type": "work", "target_id": 7, "content": "Ідея з балансом сили дуже цікава." },
+  { "id": 8, "user_id": 9, "target_type": "work", "target_id": 8, "content": "Люблю такі космічні історії." },
+  { "id": 9, "user_id": 10, "target_type": "work", "target_id": 9, "content": "Це кращий варіант фіналу, ніж оригінал." },
+  { "id": 10, "user_id": 11, "target_type": "work", "target_id": 10, "content": "Атмосфера дуже добре передана." },
+
+  { "id": 11, "user_id": 12, "target_type": "work", "target_id": 11, "content": "Upside Down завжди був загадкою, цікаво читати такі версії." },
+  { "id": 12, "user_id": 13, "target_type": "work", "target_id": 12, "content": "Це вже зовсім інший Волтер, але правдоподібно." },
+  { "id": 13, "user_id": 14, "target_type": "work", "target_id": 13, "content": "Сюжет тримає в напрузі." },
+  { "id": 14, "user_id": 15, "target_type": "work", "target_id": 14, "content": "Цей демон реально страшний." },
+  { "id": 15, "user_id": 16, "target_type": "work", "target_id": 15, "content": "Сумна, але сильна історія." },
+
+  { "id": 16, "user_id": 17, "target_type": "post", "target_id": 1, "content": "Повністю згоден, Акацукі змінили все." },
+  { "id": 17, "user_id": 18, "target_type": "post", "target_id": 2, "content": "Я за Доктора Стренджа, він занадто імба." },
+  { "id": 18, "user_id": 19, "target_type": "post", "target_id": 3, "content": "Ці теорії реально цікаві, дякую за підбірку." },
+  { "id": 19, "user_id": 20, "target_type": "post", "target_id": 4, "content": "Фінал був суперечливий, але мені зайшов." },
+  { "id": 20, "user_id": 1, "target_type": "post", "target_id": 5, "content": "Школа Кота виглядає найцікавіше." },
+
+  { "id": 21, "user_id": 2, "target_type": "post", "target_id": 6, "content": "Темні історії реально краще працюють у DC." },
+  { "id": 22, "user_id": 3, "target_type": "post", "target_id": 7, "content": "Стара Республіка — топ для фанфіків." },
+  { "id": 23, "user_id": 4, "target_type": "post", "target_id": 8, "content": "Star Trek — це більше про ідеї, ніж про екшн." },
+  { "id": 24, "user_id": 5, "target_type": "post", "target_id": 9, "content": "Старки, без варіантів." },
+  { "id": 25, "user_id": 6, "target_type": "post", "target_id": 10, "content": "Середзем'я має неймовірну глибину." },
+
+  { "id": 26, "user_id": 7, "target_type": "post", "target_id": 11, "content": "Було б цікаво побачити більше про походження Upside Down." },
+  { "id": 27, "user_id": 8, "target_type": "post", "target_id": 12, "content": "Мені здається, він вже перейшов точку неповернення." },
+  { "id": 28, "user_id": 9, "target_type": "post", "target_id": 13, "content": "Без Ватсона це вже не той Шерлок." },
+  { "id": 29, "user_id": 10, "target_type": "post", "target_id": 14, "content": "Мені подобались історії з міфологією." },
+  { "id": 30, "user_id": 11, "target_type": "post", "target_id": 15, "content": "У цьому світі люди страшніші за зомбі." }
+]

@@ -1,0 +1,25 @@
+[
+  { "id": 1, "firebase_uid": "uid1", "email": "user1@gmail.com", "name": "Alice", "avatar_url": "https://i.pravatar.cc/150?img=1", "role": "admin" },
+  { "id": 2, "firebase_uid": "uid2", "email": "user2@gmail.com", "name": "Bob", "avatar_url": "https://i.pravatar.cc/150?img=2", "role": "user" },
+  { "id": 3, "firebase_uid": "uid3", "email": "user3@gmail.com", "name": "Charlie", "avatar_url": "https://i.pravatar.cc/150?img=3", "role": "user" },
+  { "id": 4, "firebase_uid": "uid4", "email": "user4@gmail.com", "name": "Diana", "avatar_url": "https://i.pravatar.cc/150?img=4", "role": "user" },
+  { "id": 5, "firebase_uid": "uid5", "email": "user5@gmail.com", "name": "Eva", "avatar_url": "https://i.pravatar.cc/150?img=5", "role": "user" },
+
+  { "id": 6, "firebase_uid": "uid6", "email": "user6@gmail.com", "name": "Max", "avatar_url": "https://i.pravatar.cc/150?img=6", "role": "user" },
+  { "id": 7, "firebase_uid": "uid7", "email": "user7@gmail.com", "name": "Leo", "avatar_url": "https://i.pravatar.cc/150?img=7", "role": "user" },
+  { "id": 8, "firebase_uid": "uid8", "email": "user8@gmail.com", "name": "Anna", "avatar_url": "https://i.pravatar.cc/150?img=8", "role": "user" },
+  { "id": 9, "firebase_uid": "uid9", "email": "user9@gmail.com", "name": "Tom", "avatar_url": "https://i.pravatar.cc/150?img=9", "role": "user" },
+  { "id": 10, "firebase_uid": "uid10", "email": "user10@gmail.com", "name": "Kate", "avatar_url": "https://i.pravatar.cc/150?img=10", "role": "user" },
+
+  { "id": 11, "firebase_uid": "uid11", "email": "user11@gmail.com", "name": "Nick", "avatar_url": "https://i.pravatar.cc/150?img=11", "role": "user" },
+  { "id": 12, "firebase_uid": "uid12", "email": "user12@gmail.com", "name": "Olivia", "avatar_url": "https://i.pravatar.cc/150?img=12", "role": "user" },
+  { "id": 13, "firebase_uid": "uid13", "email": "user13@gmail.com", "name": "Paul", "avatar_url": "https://i.pravatar.cc/150?img=13", "role": "user" },
+  { "id": 14, "firebase_uid": "uid14", "email": "user14@gmail.com", "name": "Quinn", "avatar_url": "https://i.pravatar.cc/150?img=14", "role": "user" },
+  { "id": 15, "firebase_uid": "uid15", "email": "user15@gmail.com", "name": "Rose", "avatar_url": "https://i.pravatar.cc/150?img=15", "role": "user" },
+
+  { "id": 16, "firebase_uid": "uid16", "email": "user16@gmail.com", "name": "Sam", "avatar_url": "https://i.pravatar.cc/150?img=16", "role": "user" },
+  { "id": 17, "firebase_uid": "uid17", "email": "user17@gmail.com", "name": "Tina", "avatar_url": "https://i.pravatar.cc/150?img=17", "role": "user" },
+  { "id": 18, "firebase_uid": "uid18", "email": "user18@gmail.com", "name": "Victor", "avatar_url": "https://i.pravatar.cc/150?img=18", "role": "user" },
+  { "id": 19, "firebase_uid": "uid19", "email": "user19@gmail.com", "name": "Wendy", "avatar_url": "https://i.pravatar.cc/150?img=19", "role": "user" },
+  { "id": 20, "firebase_uid": "uid20", "email": "user20@gmail.com", "name": "Zack", "avatar_url": "https://i.pravatar.cc/150?img=20", "role": "user" }
+]

@@ -1,0 +1,37 @@
+[
+  { "id": 1, "name": "Naruto", "description": "Світ шинобі", "cover_image": "https://picsum.photos/seed/naruto/400/300" },
+  { "id": 2, "name": "Marvel", "description": "Супергерої Marvel", "cover_image": "https://picsum.photos/seed/marvel/400/300" },
+  { "id": 3, "name": "Harry Potter", "description": "Магічний світ", "cover_image": "https://picsum.photos/seed/harrypotter/400/300" },
+  { "id": 4, "name": "Attack on Titan", "description": "Боротьба з титанами", "cover_image": "https://picsum.photos/seed/aot/400/300" },
+  { "id": 5, "name": "The Witcher", "description": "Світ відьмака", "cover_image": "https://picsum.photos/seed/witcher/400/300" },
+
+  { "id": 6, "name": "DC Comics", "description": "Всесвіт DC", "cover_image": "https://picsum.photos/seed/dc/400/300" },
+  { "id": 7, "name": "Star Wars", "description": "Галактична сага", "cover_image": "https://picsum.photos/seed/starwars/400/300" },
+  { "id": 8, "name": "Star Trek", "description": "Наукова фантастика про космос", "cover_image": "https://picsum.photos/seed/startrek/400/300" },
+  { "id": 9, "name": "Game of Thrones", "description": "Боротьба за трон", "cover_image": "https://picsum.photos/seed/got/400/300" },
+  { "id": 10, "name": "Lord of the Rings", "description": "Середзем'я", "cover_image": "https://picsum.photos/seed/lotr/400/300" },
+
+  { "id": 11, "name": "Stranger Things", "description": "Надприродні події у маленькому місті", "cover_image": "https://picsum.photos/seed/strangerthings/400/300" },
+  { "id": 12, "name": "Breaking Bad", "description": "Кримінальна драма", "cover_image": "https://picsum.photos/seed/breakingbad/400/300" },
+  { "id": 13, "name": "Sherlock", "description": "Сучасний Шерлок Холмс", "cover_image": "https://picsum.photos/seed/sherlock/400/300" },
+  { "id": 14, "name": "Supernatural", "description": "Полювання на демонів", "cover_image": "https://picsum.photos/seed/supernatural/400/300" },
+  { "id": 15, "name": "The Walking Dead", "description": "Світ після зомбі-апокаліпсису", "cover_image": "https://picsum.photos/seed/twd/400/300" },
+
+  { "id": 16, "name": "Cyberpunk 2077", "description": "Футуристичний світ кіберпанку", "cover_image": "https://picsum.photos/seed/cyberpunk/400/300" },
+  { "id": 17, "name": "The Last of Us", "description": "Постапокаліптичний світ", "cover_image": "https://picsum.photos/seed/tlou/400/300" },
+  { "id": 18, "name": "Genshin Impact", "description": "Фентезійний світ Тейват", "cover_image": "https://picsum.photos/seed/genshin/400/300" },
+  { "id": 19, "name": "League of Legends", "description": "Всесвіт Runeterra", "cover_image": "https://picsum.photos/seed/lol/400/300" },
+  { "id": 20, "name": "Dota 2", "description": "Фентезійний світ героїв", "cover_image": "https://picsum.photos/seed/dota/400/300" },
+
+  { "id": 21, "name": "Minecraft", "description": "Пісочниця без меж", "cover_image": "https://picsum.photos/seed/minecraft/400/300" },
+  { "id": 22, "name": "Fortnite", "description": "Королівська битва", "cover_image": "https://picsum.photos/seed/fortnite/400/300" },
+  { "id": 23, "name": "Overwatch", "description": "Командний шутер з героями", "cover_image": "https://picsum.photos/seed/overwatch/400/300" },
+  { "id": 24, "name": "Valorant", "description": "Тактичний шутер", "cover_image": "https://picsum.photos/seed/valorant/400/300" },
+  { "id": 25, "name": "World of Warcraft", "description": "Світ Азероту", "cover_image": "https://picsum.photos/seed/wow/400/300" },
+
+  { "id": 26, "name": "Avatar: The Last Airbender", "description": "Магія стихій", "cover_image": "https://picsum.photos/seed/avatar/400/300" },
+  { "id": 27, "name": "Rick and Morty", "description": "Наукова фантастика з гумором", "cover_image": "https://picsum.photos/seed/rickmorty/400/300" },
+  { "id": 28, "name": "Arcane", "description": "Історії з Runeterra", "cover_image": "https://picsum.photos/seed/arcane/400/300" },
+  { "id": 29, "name": "One Piece", "description": "Пірати та пригоди", "cover_image": "https://picsum.photos/seed/onepiece/400/300" },
+  { "id": 30, "name": "Dragon Ball", "description": "Бойові мистецтва та енергія", "cover_image": "https://picsum.photos/seed/dragonball/400/300" }
+]

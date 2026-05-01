@@ -1,0 +1,37 @@
+[
+  { "id": 1, "user_id": 1, "fandom_id": 1, "title": "Тінь Хокаге", "description": "Альтернативна історія, де Наруто стає темним шинобі", "type": "fanfic" },
+  { "id": 2, "user_id": 2, "fandom_id": 2, "title": "Iron Man Mk-99", "description": "Концепт нової броні Тоні Старка", "type": "art" },
+  { "id": 3, "user_id": 3, "fandom_id": 3, "title": "Гаррі Поттер і Темний Вибір", "description": "Що якби Гаррі приєднався до Волдеморта", "type": "fanfic" },
+  { "id": 4, "user_id": 4, "fandom_id": 4, "title": "Останній титан", "description": "Теорія про походження титанів", "type": "theory" },
+  { "id": 5, "user_id": 5, "fandom_id": 5, "title": "Геральт після кінця", "description": "Події після завершення історії відьмака", "type": "fanfic" },
+
+  { "id": 6, "user_id": 6, "fandom_id": 6, "title": "Batman Beyond", "description": "Новий Бетмен у майбутньому", "type": "fanfic" },
+  { "id": 7, "user_id": 7, "fandom_id": 7, "title": "Сила балансу", "description": "Джедай і ситх об'єднуються", "type": "fanfic" },
+  { "id": 8, "user_id": 8, "fandom_id": 8, "title": "Нова місія Ентерпрайз", "description": "Космічна експедиція нового покоління", "type": "fanfic" },
+  { "id": 9, "user_id": 9, "fandom_id": 9, "title": "Гра без королів", "description": "Альтернативний фінал гри престолів", "type": "fanfic" },
+  { "id": 10, "user_id": 10, "fandom_id": 10, "title": "Останній хранитель кільця", "description": "Нова історія після знищення кільця", "type": "fanfic" },
+
+  { "id": 11, "user_id": 11, "fandom_id": 11, "title": "Upside Down: Початок", "description": "Історія виникнення паралельного світу", "type": "theory" },
+  { "id": 12, "user_id": 12, "fandom_id": 12, "title": "Heisenberg: Альтернатива", "description": "Що якби Волтер не зупинився", "type": "fanfic" },
+  { "id": 13, "user_id": 13, "fandom_id": 13, "title": "Новий кейс Шерлока", "description": "Заплутане вбивство у Лондоні", "type": "fanfic" },
+  { "id": 14, "user_id": 14, "fandom_id": 14, "title": "Полювання триває", "description": "Новий демон у світі Supernatural", "type": "fanfic" },
+  { "id": 15, "user_id": 15, "fandom_id": 15, "title": "Останній притулок", "description": "Група виживших знаходить новий дім", "type": "fanfic" },
+
+  { "id": 16, "user_id": 16, "fandom_id": 16, "title": "Night City Stories", "description": "Життя найманця у кіберпанку", "type": "fanfic" },
+  { "id": 17, "user_id": 17, "fandom_id": 17, "title": "Ellie: Інша доля", "description": "Альтернативна історія виживання", "type": "fanfic" },
+  { "id": 18, "user_id": 18, "fandom_id": 18, "title": "Легенди Тейвату", "description": "Нові герої у світі Genshin", "type": "fanfic" },
+  { "id": 19, "user_id": 19, "fandom_id": 19, "title": "Runeterra: Війна фракцій", "description": "Конфлікт між регіонами", "type": "fanfic" },
+  { "id": 20, "user_id": 20, "fandom_id": 20, "title": "Битва древніх", "description": "Історія древніх героїв", "type": "fanfic" },
+
+  { "id": 21, "user_id": 1, "fandom_id": 21, "title": "Кубічний світ", "description": "Пригода у світі Minecraft", "type": "fanfic" },
+  { "id": 22, "user_id": 2, "fandom_id": 22, "title": "Останній матч", "description": "Фінальна битва у Fortnite", "type": "fanfic" },
+  { "id": 23, "user_id": 3, "fandom_id": 23, "title": "Overwatch Reborn", "description": "Повернення героїв", "type": "fanfic" },
+  { "id": 24, "user_id": 4, "fandom_id": 24, "title": "Агент X", "description": "Нова історія агента Valorant", "type": "fanfic" },
+  { "id": 25, "user_id": 5, "fandom_id": 25, "title": "Хроніки Азероту", "description": "Історія одного героя", "type": "fanfic" },
+
+  { "id": 26, "user_id": 6, "fandom_id": 26, "title": "Аватар нового покоління", "description": "Новий володар стихій", "type": "fanfic" },
+  { "id": 27, "user_id": 7, "fandom_id": 27, "title": "Rick & Morty: Парадокс", "description": "Подорож між вимірами", "type": "fanfic" },
+  { "id": 28, "user_id": 8, "fandom_id": 28, "title": "Arcane: Інша історія", "description": "Альтернативний розвиток подій", "type": "fanfic" },
+  { "id": 29, "user_id": 9, "fandom_id": 29, "title": "Новий піратський світ", "description": "Подорож нової команди", "type": "fanfic" },
+  { "id": 30, "user_id": 10, "fandom_id": 30, "title": "Dragon Ball: Новий ворог", "description": "Загроза з іншого всесвіту", "type": "fanfic" }
+]
