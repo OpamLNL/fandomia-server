@@ -2,7 +2,8 @@
   "name": "fandomia_server",
   "version": "1.0.0",
   "scripts": {
-    "start": "node ./src/server.js"
+    "start": "node ./src/server.js",
+    "db:reset": "node ./src/migrations/init-db.js"
   },
   "dependencies": {
     "axios": "^1.9.0",

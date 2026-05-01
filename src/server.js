@@ -12,12 +12,10 @@ const authRoutes = require('./routes/auth');
 const { closePool } = require('./config/database');
 const { checkAndInitDatabase } = require('./migrations/db-checker');
 
-// 👇
-const initDb = require('./migrations/init-db');
-
 // CORS
 const allowedOrigins = [
     'http://localhost:3000',
+    'http://localhost:5173',
 
 ];
 
@@ -95,10 +93,7 @@ const ipAddress = process.env.DB_IP;
 const server = http.createServer(app);
 
 (async () => {
-    // заповнення сідами
-    await initDb({ drop: true, seed: true });
-
-    // нормальна перевірка
+    // лише перевірка: створить відсутні таблиці, дані не чіпає
     await checkAndInitDatabase();
 
     server.listen(PORT, ipAddress, () => {
