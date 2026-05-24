@@ -1,4 +1,6 @@
 const fandomRepository = require('../repositories/fandomRepository');
+const workService = require('./workService');
+const postService = require('./postService');
 
 const getAllFandoms = async () => {
     return await fandomRepository.getAllFandoms();
@@ -29,7 +31,7 @@ const getWorksByFandomId = async (fandomId, viewer = {}) => {
         throw new Error('Фандом не знайдено');
     }
 
-    return await fandomRepository.getWorksByFandomId(fandomId, Boolean(viewer.showMature));
+    return workService.getWorksByFandomId(fandomId, viewer);
 };
 
 const getPostsByFandomId = async (fandomId, viewer = {}) => {
@@ -39,7 +41,7 @@ const getPostsByFandomId = async (fandomId, viewer = {}) => {
         throw new Error('Фандом не знайдено');
     }
 
-    return await fandomRepository.getPostsByFandomId(fandomId, Boolean(viewer.showMature));
+    return postService.getPostsByFandomId(fandomId, viewer);
 };
 
 const getAuthorsByFandomId = async (fandomId) => {
