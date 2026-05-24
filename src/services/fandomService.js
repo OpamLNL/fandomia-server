@@ -22,24 +22,34 @@ const searchFandomsByName = async (name) => {
     return await fandomRepository.searchFandomsByName(name.trim());
 };
 
-const getWorksByFandomId = async (fandomId) => {
+const getWorksByFandomId = async (fandomId, viewer = {}) => {
     const fandom = await fandomRepository.getFandomById(fandomId);
 
     if (!fandom) {
         throw new Error('Фандом не знайдено');
     }
 
-    return await fandomRepository.getWorksByFandomId(fandomId);
+    return await fandomRepository.getWorksByFandomId(fandomId, Boolean(viewer.showMature));
 };
 
-const getPostsByFandomId = async (fandomId) => {
+const getPostsByFandomId = async (fandomId, viewer = {}) => {
     const fandom = await fandomRepository.getFandomById(fandomId);
 
     if (!fandom) {
         throw new Error('Фандом не знайдено');
     }
 
-    return await fandomRepository.getPostsByFandomId(fandomId);
+    return await fandomRepository.getPostsByFandomId(fandomId, Boolean(viewer.showMature));
+};
+
+const getAuthorsByFandomId = async (fandomId) => {
+    const fandom = await fandomRepository.getFandomById(fandomId);
+
+    if (!fandom) {
+        throw new Error('Фандом не знайдено');
+    }
+
+    return await fandomRepository.getAuthorsByFandomId(fandomId);
 };
 
 const getFandomStats = async (fandomId) => {
@@ -98,6 +108,7 @@ module.exports = {
     searchFandomsByName,
     getWorksByFandomId,
     getPostsByFandomId,
+    getAuthorsByFandomId,
     getFandomStats,
     createFandom,
     updateFandom,

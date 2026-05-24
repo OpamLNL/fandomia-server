@@ -106,6 +106,10 @@ const getUserStats = async (userId) => {
     return await userRepository.getUserStats(id);
 };
 
+const getPopularAuthors = async (limit = 3) => {
+    return userRepository.getPopularAuthors(limit);
+};
+
 const createUser = async ({ firebase_uid, email, name, avatar_url, role }) => {
     if (!firebase_uid) throw new Error('Firebase UID обовʼязковий');
 
@@ -164,6 +168,9 @@ const updateUser = async (userId, userData) => {
         email: userData.email !== undefined ? userData.email : existing.email,
         name: userData.name !== undefined ? userData.name : existing.name,
         avatar_url: userData.avatar_url !== undefined ? userData.avatar_url : existing.avatar_url,
+        ...(userData.show_mature_content !== undefined
+            ? { show_mature_content: Boolean(userData.show_mature_content) }
+            : {}),
     });
 
     return await getUserById(userId);
@@ -237,6 +244,7 @@ module.exports = {
     getUserComments,
     getReceivedComments,
     getUserStats,
+    getPopularAuthors,
     createUser,
     createUserAndAuthenticate,
     updateUser,

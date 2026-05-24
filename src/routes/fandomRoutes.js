@@ -3,6 +3,7 @@ const router = express.Router();
 
 const fandomController = require('../controllers/fandomController');
 const firebaseAuthMiddleware = require('../middlewares/firebaseAuthMiddleware');
+const optionalFirebaseAuth = require('../middlewares/optionalFirebaseAuth');
 const { isModeratorOrAdmin } = require('../middlewares/roleMiddleware');
 
 const asyncHandler = (fn) => (req, res, next) => {
@@ -14,8 +15,9 @@ router.get('/search', asyncHandler(fandomController.searchFandomsByName));
 
 router.get('/', asyncHandler(fandomController.getAllFandoms));
 
-router.get('/:id/works', asyncHandler(fandomController.getWorksByFandomId));
-router.get('/:id/posts', asyncHandler(fandomController.getPostsByFandomId));
+router.get('/:id/works', optionalFirebaseAuth, asyncHandler(fandomController.getWorksByFandomId));
+router.get('/:id/posts', optionalFirebaseAuth, asyncHandler(fandomController.getPostsByFandomId));
+router.get('/:id/authors', asyncHandler(fandomController.getAuthorsByFandomId));
 router.get('/:id/stats', asyncHandler(fandomController.getFandomStats));
 
 router.get('/:id', asyncHandler(fandomController.getFandomById));

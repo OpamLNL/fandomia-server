@@ -17,6 +17,7 @@ const asyncHandler = (fn) => (req, res, next) => {
 
 // public
 router.get('/search', asyncHandler(userController.searchUsers));
+router.get('/popular', asyncHandler(userController.getPopularAuthors));
 
 router.get('/firebase/:firebaseUid', asyncHandler(userController.getUserByFirebaseUid));
 router.get('/email/:email', asyncHandler(userController.getUserByEmail));

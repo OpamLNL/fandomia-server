@@ -5,6 +5,7 @@ const workController = require('../controllers/workController');
 const workRepository = require('../repositories/workRepository');
 
 const firebaseAuthMiddleware = require('../middlewares/firebaseAuthMiddleware');
+const optionalFirebaseAuth = require('../middlewares/optionalFirebaseAuth');
 const {
     isAuthenticated,
     isOwner
@@ -25,14 +26,14 @@ const getWorkOwner = async (req) => {
 };
 
 // public routes
-router.get('/search', asyncHandler(workController.searchWorks));
-router.get('/author/:userId', asyncHandler(workController.getWorksByUserId));
-router.get('/fandom/:fandomId', asyncHandler(workController.getWorksByFandomId));
-router.get('/type/:type', asyncHandler(workController.getWorksByType));
-router.get('/tag/:tagId', asyncHandler(workController.getWorksByTagId));
+router.get('/search', optionalFirebaseAuth, asyncHandler(workController.searchWorks));
+router.get('/author/:userId', optionalFirebaseAuth, asyncHandler(workController.getWorksByUserId));
+router.get('/fandom/:fandomId', optionalFirebaseAuth, asyncHandler(workController.getWorksByFandomId));
+router.get('/type/:type', optionalFirebaseAuth, asyncHandler(workController.getWorksByType));
+router.get('/tag/:tagId', optionalFirebaseAuth, asyncHandler(workController.getWorksByTagId));
 
-router.get('/', asyncHandler(workController.getAllWorks));
-router.get('/:id', asyncHandler(workController.getWorkById));
+router.get('/', optionalFirebaseAuth, asyncHandler(workController.getAllWorks));
+router.get('/:id', optionalFirebaseAuth, asyncHandler(workController.getWorkById));
 
 // protected routes
 router.post(

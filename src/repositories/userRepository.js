@@ -181,6 +181,36 @@ const getUserStats = async (userId) => {
     };
 };
 
+const getPopularAuthors = async (limit = 3) => {
+    return query(
+        `SELECT
+            u.id,
+            u.name,
+            u.avatar_url,
+            (SELECT COUNT(*) FROM works w WHERE w.user_id = u.id AND w.status = 'active') AS works_count,
+            (SELECT COUNT(*) FROM posts p WHERE p.user_id = u.id AND p.status = 'active') AS posts_count,
+            (
+                SELECT COUNT(*)
+                FROM likes l
+                WHERE (l.target_type = 'work' AND l.target_id IN (
+                    SELECT id FROM works w2 WHERE w2.user_id = u.id AND w2.status = 'active'
+                ))
+                OR (l.target_type = 'post' AND l.target_id IN (
+                    SELECT id FROM posts p2 WHERE p2.user_id = u.id AND p2.status = 'active'
+                ))
+            ) AS likes_received_count
+         FROM users u
+         WHERE (u.is_blocked = FALSE OR u.is_blocked IS NULL)
+           AND (
+               EXISTS (SELECT 1 FROM works w WHERE w.user_id = u.id AND w.status = 'active')
+               OR EXISTS (SELECT 1 FROM posts p WHERE p.user_id = u.id AND p.status = 'active')
+           )
+         ORDER BY likes_received_count DESC, works_count DESC, posts_count DESC
+         LIMIT ?`,
+        [limit]
+    );
+};
+
 const createUser = async (data) => {
     const {
         firebase_uid,
@@ -216,25 +246,35 @@ const updateUser = async (id, data) => {
     const {
         email,
         name,
-        avatar_url
+        avatar_url,
+        show_mature_content,
     } = data;
+
+    const fields = ['email = ?', 'name = ?', 'avatar_url = ?'];
+    const values = [email || null, name || null, avatar_url || null];
+
+    if (show_mature_content !== undefined) {
+        fields.push('show_mature_content = ?', 'mature_confirmed_at = ?');
+        values.push(Boolean(show_mature_content));
+        values.push(show_mature_content ? new Date() : null);
+    }
+
+    values.push(id);
 
     await query(`
         UPDATE users
-        SET email = ?, name = ?, avatar_url = ?
+        SET ${fields.join(', ')}
         WHERE id = ?
-    `, [
-        email || null,
-        name || null,
-        avatar_url || null,
-        id
-    ]);
+    `, values);
 
     return {
         id,
         email,
         name,
-        avatar_url
+        avatar_url,
+        ...(show_mature_content !== undefined
+            ? { show_mature_content: Boolean(show_mature_content) }
+            : {}),
     };
 };
 
@@ -284,6 +324,7 @@ module.exports = {
     getUserComments,
     getReceivedComments,
     getUserStats,
+    getPopularAuthors,
     createUser,
     updateUser,
     updateUserRole,

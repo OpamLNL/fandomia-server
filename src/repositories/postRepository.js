@@ -1,6 +1,7 @@
 const { query } = require('../config/database');
+const { matureOnlySql } = require('../utils/contentRating');
 
-const getAllPosts = async () => {
+const getAllPosts = async (showMature = false) => {
     return await query(`
         SELECT
             p.*,
@@ -10,7 +11,7 @@ const getAllPosts = async () => {
         FROM posts p
                  LEFT JOIN users u ON p.user_id = u.id
                  LEFT JOIN fandoms f ON p.fandom_id = f.id
-        WHERE p.status = 'active'
+        WHERE p.status = 'active'${matureOnlySql('p', showMature)}
         ORDER BY p.created_at DESC
     `);
 };
@@ -43,7 +44,7 @@ const getPostsByUserId = async (userId) => {
     `, [userId]);
 };
 
-const getPostsByFandomId = async (fandomId) => {
+const getPostsByFandomId = async (fandomId, showMature = false) => {
     return await query(`
         SELECT
             p.*,
@@ -51,12 +52,12 @@ const getPostsByFandomId = async (fandomId) => {
             u.avatar_url AS author_avatar
         FROM posts p
                  LEFT JOIN users u ON p.user_id = u.id
-        WHERE p.fandom_id = ? AND p.status = 'active'
+        WHERE p.fandom_id = ? AND p.status = 'active'${matureOnlySql('p', showMature)}
         ORDER BY p.created_at DESC
     `, [fandomId]);
 };
 
-const getPostsByType = async (type) => {
+const getPostsByType = async (type, showMature = false) => {
     return await query(`
         SELECT
             p.*,
@@ -65,12 +66,12 @@ const getPostsByType = async (type) => {
         FROM posts p
                  LEFT JOIN users u ON p.user_id = u.id
                  LEFT JOIN fandoms f ON p.fandom_id = f.id
-        WHERE p.type = ? AND p.status = 'active'
+        WHERE p.type = ? AND p.status = 'active'${matureOnlySql('p', showMature)}
         ORDER BY p.created_at DESC
     `, [type]);
 };
 
-const searchPosts = async (searchQuery) => {
+const searchPosts = async (searchQuery, showMature = false) => {
     return await query(`
         SELECT
             p.*,
@@ -79,13 +80,13 @@ const searchPosts = async (searchQuery) => {
         FROM posts p
                  LEFT JOIN users u ON p.user_id = u.id
                  LEFT JOIN fandoms f ON p.fandom_id = f.id
-        WHERE p.status = 'active'
+        WHERE p.status = 'active'${matureOnlySql('p', showMature)}
           AND (p.title LIKE ? OR p.content LIKE ?)
         ORDER BY p.created_at DESC
     `, [`%${searchQuery}%`, `%${searchQuery}%`]);
 };
 
-const getPostsByTagId = async (tagId) => {
+const getPostsByTagId = async (tagId, showMature = false) => {
     return await query(`
         SELECT
             p.*,
@@ -95,12 +96,12 @@ const getPostsByTagId = async (tagId) => {
                  JOIN post_tags pt ON p.id = pt.post_id
                  LEFT JOIN users u ON p.user_id = u.id
                  LEFT JOIN fandoms f ON p.fandom_id = f.id
-        WHERE pt.tag_id = ? AND p.status = 'active'
+        WHERE pt.tag_id = ? AND p.status = 'active'${matureOnlySql('p', showMature)}
         ORDER BY p.created_at DESC
     `, [tagId]);
 };
 
-const getLatestPosts = async (limit = 10) => {
+const getLatestPosts = async (limit = 10, showMature = false) => {
     return await query(`
         SELECT
             p.*,
@@ -110,7 +111,7 @@ const getLatestPosts = async (limit = 10) => {
         FROM posts p
                  LEFT JOIN users u ON p.user_id = u.id
                  LEFT JOIN fandoms f ON p.fandom_id = f.id
-        WHERE p.status = 'active'
+        WHERE p.status = 'active'${matureOnlySql('p', showMature)}
         ORDER BY p.created_at DESC
         LIMIT ?
     `, [Number(limit) || 10]);
@@ -141,14 +142,15 @@ const deletePostTags = async (postId) => {
 
 const createPost = async (data) => {
     const result = await query(`
-        INSERT INTO posts (user_id, fandom_id, title, content, type, status)
-        VALUES (?, ?, ?, ?, ?, 'active')
+        INSERT INTO posts (user_id, fandom_id, title, content, type, content_rating, status)
+        VALUES (?, ?, ?, ?, ?, ?, 'active')
     `, [
         data.user_id,
         data.fandom_id,
         data.title,
         data.content,
-        data.type || 'discussion'
+        data.type || 'discussion',
+        data.content_rating || 'general',
     ]);
 
     return { id: result.insertId };
@@ -157,14 +159,15 @@ const createPost = async (data) => {
 const updatePost = async (id, data) => {
     await query(`
         UPDATE posts
-        SET fandom_id = ?, title = ?, content = ?, type = ?
+        SET fandom_id = ?, title = ?, content = ?, type = ?, content_rating = ?
         WHERE id = ?
     `, [
         data.fandom_id,
         data.title,
         data.content,
         data.type,
-        id
+        data.content_rating || 'general',
+        id,
     ]);
 
     return { id };

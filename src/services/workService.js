@@ -1,6 +1,7 @@
 const workRepository = require('../repositories/workRepository');
 const { WORK_TYPES, createWorkEntity } = require('../models/workModel');
 const { getPagination, buildPaginationResponse } = require('../utils/pagination');
+const { normalizeContentRating, assertCanViewContent } = require('../utils/contentRating');
 
 const enrichWork = async (work) => {
     if (!work) return null;
@@ -11,7 +12,7 @@ const enrichWork = async (work) => {
     return createWorkEntity({
         ...work,
         images,
-        tags
+        tags,
     });
 };
 
@@ -25,11 +26,12 @@ const enrichWorks = async (works) => {
     return result;
 };
 
-const getAllWorks = async (query = {}) => {
+const getAllWorks = async (query = {}, viewer = {}) => {
     const { page, limit, offset } = getPagination(query);
+    const showMature = Boolean(viewer.showMature);
 
-    const works = await workRepository.getAllWorks(limit, offset);
-    const total = await workRepository.countWorks();
+    const works = await workRepository.getAllWorks(limit, offset, showMature);
+    const total = await workRepository.countWorks(showMature);
 
     const enriched = await enrichWorks(works);
 
@@ -37,16 +39,18 @@ const getAllWorks = async (query = {}) => {
         data: enriched,
         total,
         page,
-        limit
+        limit,
     });
 };
 
-const getWorkById = async (id) => {
+const getWorkById = async (id, viewer = {}) => {
     const work = await workRepository.getWorkById(id);
 
     if (!work) {
         throw new Error('Роботу не знайдено');
     }
+
+    assertCanViewContent(work, viewer);
 
     return await enrichWork(work);
 };
@@ -56,31 +60,31 @@ const getWorksByUserId = async (userId) => {
     return await enrichWorks(works);
 };
 
-const getWorksByFandomId = async (fandomId) => {
-    const works = await workRepository.getWorksByFandomId(fandomId);
+const getWorksByFandomId = async (fandomId, viewer = {}) => {
+    const works = await workRepository.getWorksByFandomId(fandomId, Boolean(viewer.showMature));
     return await enrichWorks(works);
 };
 
-const getWorksByType = async (type) => {
+const getWorksByType = async (type, viewer = {}) => {
     if (!Object.values(WORK_TYPES).includes(type)) {
         throw new Error('Некоректний тип роботи');
     }
 
-    const works = await workRepository.getWorksByType(type);
+    const works = await workRepository.getWorksByType(type, Boolean(viewer.showMature));
     return await enrichWorks(works);
 };
 
-const searchWorks = async (searchQuery) => {
+const searchWorks = async (searchQuery, viewer = {}) => {
     if (!searchQuery || !searchQuery.trim()) {
-        return await getAllWorks();
+        return await getAllWorks({}, viewer);
     }
 
-    const works = await workRepository.searchWorks(searchQuery.trim());
+    const works = await workRepository.searchWorks(searchQuery.trim(), Boolean(viewer.showMature));
     return await enrichWorks(works);
 };
 
-const getWorksByTagId = async (tagId) => {
-    const works = await workRepository.getWorksByTagId(tagId);
+const getWorksByTagId = async (tagId, viewer = {}) => {
+    const works = await workRepository.getWorksByTagId(tagId, Boolean(viewer.showMature));
     return await enrichWorks(works);
 };
 
@@ -110,7 +114,8 @@ const createWork = async (data, user) => {
         fandom_id: data.fandom_id,
         title: data.title.trim(),
         description: data.description || null,
-        type: data.type || WORK_TYPES.FANFIC
+        type: data.type || WORK_TYPES.FANFIC,
+        content_rating: normalizeContentRating(data.content_rating),
     });
 
     if (Array.isArray(data.images)) {
@@ -119,7 +124,7 @@ const createWork = async (data, user) => {
         }
     }
 
-    return await getWorkById(work.id);
+    return await getWorkById(work.id, { showMature: true, viewerId: data.user_id });
 };
 
 const updateWork = async (id, data, user) => {
@@ -145,10 +150,13 @@ const updateWork = async (id, data, user) => {
         fandom_id: data.fandom_id || existing.fandom_id,
         title: data.title.trim(),
         description: data.description || null,
-        type: data.type || existing.type
+        type: data.type || existing.type,
+        content_rating: normalizeContentRating(
+            data.content_rating !== undefined ? data.content_rating : existing.content_rating
+        ),
     });
 
-    return await getWorkById(id);
+    return await getWorkById(id, { showMature: true, viewerId: user?.id ?? existing.user_id });
 };
 
 const deleteWork = async (id) => {
@@ -171,5 +179,5 @@ module.exports = {
     getWorksByTagId,
     createWork,
     updateWork,
-    deleteWork
+    deleteWork,
 };

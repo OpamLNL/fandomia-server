@@ -1,5 +1,6 @@
 const postRepository = require('../repositories/postRepository');
 const { POST_TYPES, createPostEntity } = require('../models/postModel');
+const { normalizeContentRating, assertCanViewContent } = require('../utils/contentRating');
 
 const enrichPost = async (post) => {
     if (!post) return null;
@@ -8,7 +9,7 @@ const enrichPost = async (post) => {
 
     return createPostEntity({
         ...post,
-        tags
+        tags,
     });
 };
 
@@ -22,17 +23,19 @@ const enrichPosts = async (posts) => {
     return result;
 };
 
-const getAllPosts = async () => {
-    const posts = await postRepository.getAllPosts();
+const getAllPosts = async (viewer = {}) => {
+    const posts = await postRepository.getAllPosts(Boolean(viewer.showMature));
     return await enrichPosts(posts);
 };
 
-const getPostById = async (id) => {
+const getPostById = async (id, viewer = {}) => {
     const post = await postRepository.getPostById(id);
 
     if (!post) {
         throw new Error('Пост не знайдено');
     }
+
+    assertCanViewContent(post, viewer);
 
     return await enrichPost(post);
 };
@@ -42,36 +45,36 @@ const getPostsByUserId = async (userId) => {
     return await enrichPosts(posts);
 };
 
-const getPostsByFandomId = async (fandomId) => {
-    const posts = await postRepository.getPostsByFandomId(fandomId);
+const getPostsByFandomId = async (fandomId, viewer = {}) => {
+    const posts = await postRepository.getPostsByFandomId(fandomId, Boolean(viewer.showMature));
     return await enrichPosts(posts);
 };
 
-const getPostsByType = async (type) => {
+const getPostsByType = async (type, viewer = {}) => {
     if (!Object.values(POST_TYPES).includes(type)) {
         throw new Error('Некоректний тип поста');
     }
 
-    const posts = await postRepository.getPostsByType(type);
+    const posts = await postRepository.getPostsByType(type, Boolean(viewer.showMature));
     return await enrichPosts(posts);
 };
 
-const getPostsByTagId = async (tagId) => {
-    const posts = await postRepository.getPostsByTagId(tagId);
+const getPostsByTagId = async (tagId, viewer = {}) => {
+    const posts = await postRepository.getPostsByTagId(tagId, Boolean(viewer.showMature));
     return await enrichPosts(posts);
 };
 
-const searchPosts = async (searchQuery) => {
+const searchPosts = async (searchQuery, viewer = {}) => {
     if (!searchQuery || !searchQuery.trim()) {
-        return await getAllPosts();
+        return await getAllPosts(viewer);
     }
 
-    const posts = await postRepository.searchPosts(searchQuery.trim());
+    const posts = await postRepository.searchPosts(searchQuery.trim(), Boolean(viewer.showMature));
     return await enrichPosts(posts);
 };
 
-const getLatestPosts = async (limit) => {
-    const posts = await postRepository.getLatestPosts(limit || 10);
+const getLatestPosts = async (limit, viewer = {}) => {
+    const posts = await postRepository.getLatestPosts(limit || 10, Boolean(viewer.showMature));
     return await enrichPosts(posts);
 };
 
@@ -97,7 +100,8 @@ const createPost = async (data) => {
         fandom_id: data.fandom_id,
         title: data.title.trim(),
         content: data.content || null,
-        type: data.type || POST_TYPES.DISCUSSION
+        type: data.type || POST_TYPES.DISCUSSION,
+        content_rating: normalizeContentRating(data.content_rating),
     });
 
     if (Array.isArray(data.tags)) {
@@ -106,7 +110,7 @@ const createPost = async (data) => {
         }
     }
 
-    return await getPostById(post.id);
+    return await getPostById(post.id, { showMature: true, viewerId: data.user_id });
 };
 
 const updatePost = async (id, data) => {
@@ -128,7 +132,10 @@ const updatePost = async (id, data) => {
         fandom_id: data.fandom_id,
         title: data.title.trim(),
         content: data.content || null,
-        type: data.type || existing.type
+        type: data.type || existing.type,
+        content_rating: normalizeContentRating(
+            data.content_rating !== undefined ? data.content_rating : existing.content_rating
+        ),
     });
 
     if (Array.isArray(data.tags)) {
@@ -139,7 +146,7 @@ const updatePost = async (id, data) => {
         }
     }
 
-    return await getPostById(id);
+    return await getPostById(id, { showMature: true, viewerId: existing.user_id });
 };
 
 const deletePost = async (id) => {
@@ -163,5 +170,5 @@ module.exports = {
     getLatestPosts,
     createPost,
     updatePost,
-    deletePost
+    deletePost,
 };

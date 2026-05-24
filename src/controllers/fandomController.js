@@ -1,4 +1,5 @@
 const fandomService = require('../services/fandomService');
+const { getViewerContext } = require('../utils/contentRating');
 
 const getAllFandoms = async (req, res) => {
     try {
@@ -29,7 +30,7 @@ const searchFandomsByName = async (req, res) => {
 
 const getWorksByFandomId = async (req, res) => {
     try {
-        const works = await fandomService.getWorksByFandomId(req.params.id);
+        const works = await fandomService.getWorksByFandomId(req.params.id, getViewerContext(req));
         res.json(works);
     } catch (error) {
         res.status(404).json({ error: error.message });
@@ -38,8 +39,17 @@ const getWorksByFandomId = async (req, res) => {
 
 const getPostsByFandomId = async (req, res) => {
     try {
-        const posts = await fandomService.getPostsByFandomId(req.params.id);
+        const posts = await fandomService.getPostsByFandomId(req.params.id, getViewerContext(req));
         res.json(posts);
+    } catch (error) {
+        res.status(404).json({ error: error.message });
+    }
+};
+
+const getAuthorsByFandomId = async (req, res) => {
+    try {
+        const authors = await fandomService.getAuthorsByFandomId(req.params.id);
+        res.json(authors);
     } catch (error) {
         res.status(404).json({ error: error.message });
     }
@@ -87,6 +97,7 @@ module.exports = {
     searchFandomsByName,
     getWorksByFandomId,
     getPostsByFandomId,
+    getAuthorsByFandomId,
     getFandomStats,
     createFandom,
     updateFandom,

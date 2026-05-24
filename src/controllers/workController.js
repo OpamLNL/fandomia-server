@@ -1,13 +1,31 @@
 const workService = require('../services/workService');
+const { getViewerContext } = require('../utils/contentRating');
+
+function sendContentError(res, error) {
+    if (error.code === 'MATURE_CONTENT') {
+        return res.status(403).json({
+            error: error.message,
+            requires_mature_consent: true,
+        });
+    }
+    throw error;
+}
 
 const getAllWorks = async (req, res) => {
-    const works = await workService.getAllWorks(req.query);
+    const works = await workService.getAllWorks(req.query, getViewerContext(req));
     res.json(works);
 };
 
 const getWorkById = async (req, res) => {
-    const work = await workService.getWorkById(req.params.id);
-    res.json(work);
+    try {
+        const work = await workService.getWorkById(req.params.id, getViewerContext(req));
+        res.json(work);
+    } catch (error) {
+        if (error.message === 'Роботу не знайдено') {
+            return res.status(404).json({ error: error.message });
+        }
+        sendContentError(res, error);
+    }
 };
 
 const getWorksByUserId = async (req, res) => {
@@ -16,22 +34,22 @@ const getWorksByUserId = async (req, res) => {
 };
 
 const getWorksByFandomId = async (req, res) => {
-    const works = await workService.getWorksByFandomId(req.params.fandomId);
+    const works = await workService.getWorksByFandomId(req.params.fandomId, getViewerContext(req));
     res.json(works);
 };
 
 const getWorksByType = async (req, res) => {
-    const works = await workService.getWorksByType(req.params.type);
+    const works = await workService.getWorksByType(req.params.type, getViewerContext(req));
     res.json(works);
 };
 
 const getWorksByTagId = async (req, res) => {
-    const works = await workService.getWorksByTagId(req.params.tagId);
+    const works = await workService.getWorksByTagId(req.params.tagId, getViewerContext(req));
     res.json(works);
 };
 
 const searchWorks = async (req, res) => {
-    const works = await workService.searchWorks(req.query.query);
+    const works = await workService.searchWorks(req.query.query, getViewerContext(req));
     res.json(works);
 };
 
@@ -39,7 +57,7 @@ const createWork = async (req, res) => {
     const work = await workService.createWork(
         {
             ...req.body,
-            user_id: req.user.id
+            user_id: req.user.id,
         },
         req.user
     );
@@ -67,5 +85,5 @@ module.exports = {
     searchWorks,
     createWork,
     updateWork,
-    deleteWork
+    deleteWork,
 };

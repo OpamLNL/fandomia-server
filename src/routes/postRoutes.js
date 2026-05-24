@@ -5,6 +5,7 @@ const postController = require('../controllers/postController');
 const postRepository = require('../repositories/postRepository');
 
 const firebaseAuthMiddleware = require('../middlewares/firebaseAuthMiddleware');
+const optionalFirebaseAuth = require('../middlewares/optionalFirebaseAuth');
 const {
     isAuthenticated,
     isOwnerOrModeratorOrAdmin
@@ -25,16 +26,16 @@ const getPostOwner = async (req) => {
 };
 
 // public routes
-router.get('/search', asyncHandler(postController.searchPosts));
-router.get('/latest', asyncHandler(postController.getLatestPosts));
+router.get('/search', optionalFirebaseAuth, asyncHandler(postController.searchPosts));
+router.get('/latest', optionalFirebaseAuth, asyncHandler(postController.getLatestPosts));
 
-router.get('/author/:userId', asyncHandler(postController.getPostsByUserId));
-router.get('/fandom/:fandomId', asyncHandler(postController.getPostsByFandomId));
-router.get('/type/:type', asyncHandler(postController.getPostsByType));
-router.get('/tag/:tagId', asyncHandler(postController.getPostsByTagId));
+router.get('/author/:userId', optionalFirebaseAuth, asyncHandler(postController.getPostsByUserId));
+router.get('/fandom/:fandomId', optionalFirebaseAuth, asyncHandler(postController.getPostsByFandomId));
+router.get('/type/:type', optionalFirebaseAuth, asyncHandler(postController.getPostsByType));
+router.get('/tag/:tagId', optionalFirebaseAuth, asyncHandler(postController.getPostsByTagId));
 
-router.get('/', asyncHandler(postController.getAllPosts));
-router.get('/:id', asyncHandler(postController.getPostById));
+router.get('/', optionalFirebaseAuth, asyncHandler(postController.getAllPosts));
+router.get('/:id', optionalFirebaseAuth, asyncHandler(postController.getPostById));
 
 // protected routes
 router.post(

@@ -20,7 +20,8 @@ const createUserEntity = ({
                               likes_received_count,
                               favorites_count,
                               followers_count,
-                              following_count
+                              following_count,
+                              show_mature_content
                           }) => ({
     id,
     firebase_uid,
@@ -38,6 +39,7 @@ const createUserEntity = ({
     favorites_count: Number(favorites_count ?? 0),
     followers_count: Number(followers_count ?? 0),
     following_count: Number(following_count ?? 0),
+    show_mature_content: Boolean(show_mature_content),
 });
 
 module.exports = {

@@ -1,6 +1,7 @@
 const { query } = require('../config/database');
+const { matureOnlySql } = require('../utils/contentRating');
 
-const getAllWorks = async (limit = 10, offset = 0) => {
+const getAllWorks = async (limit = 10, offset = 0, showMature = false) => {
     return await query(`
         SELECT
             w.*,
@@ -10,17 +11,17 @@ const getAllWorks = async (limit = 10, offset = 0) => {
         FROM works w
                  LEFT JOIN users u ON w.user_id = u.id
                  LEFT JOIN fandoms f ON w.fandom_id = f.id
-        WHERE w.status = 'active'
+        WHERE w.status = 'active'${matureOnlySql('w', showMature)}
         ORDER BY w.created_at DESC
             LIMIT ? OFFSET ?
     `, [limit, offset]);
 };
 
-const countWorks = async () => {
+const countWorks = async (showMature = false) => {
     const rows = await query(`
         SELECT COUNT(*) AS count
-        FROM works
-        WHERE status = 'active'
+        FROM works w
+        WHERE w.status = 'active'${matureOnlySql('w', showMature)}
     `);
 
     return rows[0].count;
@@ -54,7 +55,7 @@ const getWorksByUserId = async (userId) => {
     `, [userId]);
 };
 
-const getWorksByFandomId = async (fandomId) => {
+const getWorksByFandomId = async (fandomId, showMature = false) => {
     return await query(`
         SELECT
             w.*,
@@ -62,12 +63,12 @@ const getWorksByFandomId = async (fandomId) => {
             u.avatar_url AS author_avatar
         FROM works w
                  LEFT JOIN users u ON w.user_id = u.id
-        WHERE w.fandom_id = ? AND w.status = 'active'
+        WHERE w.fandom_id = ? AND w.status = 'active'${matureOnlySql('w', showMature)}
         ORDER BY w.created_at DESC
     `, [fandomId]);
 };
 
-const getWorksByType = async (type) => {
+const getWorksByType = async (type, showMature = false) => {
     return await query(`
         SELECT
             w.*,
@@ -76,12 +77,12 @@ const getWorksByType = async (type) => {
         FROM works w
                  LEFT JOIN users u ON w.user_id = u.id
                  LEFT JOIN fandoms f ON w.fandom_id = f.id
-        WHERE w.type = ? AND w.status = 'active'
+        WHERE w.type = ? AND w.status = 'active'${matureOnlySql('w', showMature)}
         ORDER BY w.created_at DESC
     `, [type]);
 };
 
-const searchWorks = async (searchQuery) => {
+const searchWorks = async (searchQuery, showMature = false) => {
     return await query(`
         SELECT
             w.*,
@@ -90,13 +91,13 @@ const searchWorks = async (searchQuery) => {
         FROM works w
                  LEFT JOIN users u ON w.user_id = u.id
                  LEFT JOIN fandoms f ON w.fandom_id = f.id
-        WHERE w.status = 'active'
+        WHERE w.status = 'active'${matureOnlySql('w', showMature)}
           AND (w.title LIKE ? OR w.description LIKE ?)
         ORDER BY w.created_at DESC
     `, [`%${searchQuery}%`, `%${searchQuery}%`]);
 };
 
-const getWorksByTagId = async (tagId) => {
+const getWorksByTagId = async (tagId, showMature = false) => {
     return await query(`
         SELECT
             w.*,
@@ -106,7 +107,7 @@ const getWorksByTagId = async (tagId) => {
                  JOIN work_tags wt ON w.id = wt.work_id
                  LEFT JOIN users u ON w.user_id = u.id
                  LEFT JOIN fandoms f ON w.fandom_id = f.id
-        WHERE wt.tag_id = ? AND w.status = 'active'
+        WHERE wt.tag_id = ? AND w.status = 'active'${matureOnlySql('w', showMature)}
         ORDER BY w.created_at DESC
     `, [tagId]);
 };
@@ -131,17 +132,18 @@ const getWorkTags = async (workId) => {
 };
 
 const createWork = async (data) => {
-    const { user_id, fandom_id, title, description, type } = data;
+    const { user_id, fandom_id, title, description, type, content_rating } = data;
 
     const result = await query(`
-        INSERT INTO works (user_id, fandom_id, title, description, type, status)
-        VALUES (?, ?, ?, ?, ?, 'active')
+        INSERT INTO works (user_id, fandom_id, title, description, type, content_rating, status)
+        VALUES (?, ?, ?, ?, ?, ?, 'active')
     `, [
         user_id,
         fandom_id,
         title,
         description || null,
-        type || 'fanfic'
+        type || 'fanfic',
+        content_rating || 'general',
     ]);
 
     return {
@@ -151,7 +153,8 @@ const createWork = async (data) => {
         title,
         description,
         type: type || 'fanfic',
-        status: 'active'
+        content_rating: content_rating || 'general',
+        status: 'active',
     };
 };
 
@@ -170,18 +173,19 @@ const addWorkImage = async (workId, imagePath, orderIndex = 0) => {
 };
 
 const updateWork = async (id, data) => {
-    const { fandom_id, title, description, type } = data;
+    const { fandom_id, title, description, type, content_rating } = data;
 
     await query(`
         UPDATE works
-        SET fandom_id = ?, title = ?, description = ?, type = ?
+        SET fandom_id = ?, title = ?, description = ?, type = ?, content_rating = ?
         WHERE id = ?
     `, [
         fandom_id,
         title,
         description || null,
         type || 'fanfic',
-        id
+        content_rating || 'general',
+        id,
     ]);
 
     return {
@@ -189,7 +193,8 @@ const updateWork = async (id, data) => {
         fandom_id,
         title,
         description,
-        type: type || 'fanfic'
+        type: type || 'fanfic',
+        content_rating: content_rating || 'general',
     };
 };
 
