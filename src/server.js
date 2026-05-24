@@ -70,11 +70,18 @@ app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // errors
 app.use((err, req, res, next) => {
-    if (err.status === 401) {
-        res.status(401).sendFile(path.join(__dirname, '..', 'public', '404.html'));
-    } else {
-        next(err);
+    if (res.headersSent) return next(err);
+    console.error(err);
+
+    if (req.path.startsWith('/api/')) {
+        return res.status(err.status || 500).json({ error: err.message || 'Помилка сервера' });
     }
+
+    if (err.status === 401) {
+        return res.status(401).sendFile(path.join(__dirname, '..', 'public', '404.html'));
+    }
+
+    next(err);
 });
 
 

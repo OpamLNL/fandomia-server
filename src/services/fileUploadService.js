@@ -21,6 +21,10 @@ const getWorkChaptersFolder = (workId) => {
     return path.join(getWorkFolder(workId), 'chapters');
 };
 
+const getUserFolder = (userId) => {
+    return path.join(UPLOADS_ROOT, 'users', String(userId));
+};
+
 const getPublicPath = (absolutePath) => {
     return absolutePath
         .replace(path.resolve(__dirname, '..', '..'), '')
@@ -34,6 +38,25 @@ const saveWorkImage = async (workId, file) => {
     const ext = path.extname(file.originalname);
     const fileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
     const filePath = path.join(imagesDir, fileName);
+
+    fs.renameSync(file.path, filePath);
+
+    return getPublicPath(filePath);
+};
+
+const saveUserAvatar = async (userId, file) => {
+    const userDir = getUserFolder(userId);
+    ensureDir(userDir);
+
+    const ext = path.extname(file.originalname) || '.jpg';
+    const fileName = `avatar-${Date.now()}${ext}`;
+    const filePath = path.join(userDir, fileName);
+
+    for (const entry of fs.readdirSync(userDir)) {
+        if (entry.startsWith('avatar')) {
+            fs.unlinkSync(path.join(userDir, entry));
+        }
+    }
 
     fs.renameSync(file.path, filePath);
 
@@ -58,5 +81,6 @@ const saveWorkChapter = async (workId, title, content, orderIndex) => {
 
 module.exports = {
     saveWorkImage,
+    saveUserAvatar,
     saveWorkChapter
 };

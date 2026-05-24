@@ -3,10 +3,12 @@ const router = express.Router();
 
 const userController = require('../controllers/userController');
 const firebaseAuthMiddleware = require('../middlewares/firebaseAuthMiddleware');
+const { uploadImages } = require('../middlewares/uploadMiddleware');
 
 const {
     isAdmin,
-    isOwnerOrModeratorOrAdmin
+    isAuthenticated,
+    isOwner
 } = require('../middlewares/roleMiddleware');
 
 const asyncHandler = (fn) => (req, res, next) => {
@@ -18,6 +20,37 @@ router.get('/search', asyncHandler(userController.searchUsers));
 
 router.get('/firebase/:firebaseUid', asyncHandler(userController.getUserByFirebaseUid));
 router.get('/email/:email', asyncHandler(userController.getUserByEmail));
+
+router.get(
+    '/me',
+    firebaseAuthMiddleware,
+    isAuthenticated,
+    asyncHandler(userController.getMe)
+);
+router.get(
+    '/me/works',
+    firebaseAuthMiddleware,
+    isAuthenticated,
+    asyncHandler(userController.getMyWorks)
+);
+router.get(
+    '/me/posts',
+    firebaseAuthMiddleware,
+    isAuthenticated,
+    asyncHandler(userController.getMyPosts)
+);
+router.get(
+    '/me/comments/received',
+    firebaseAuthMiddleware,
+    isAuthenticated,
+    asyncHandler(userController.getMyReceivedComments)
+);
+router.get(
+    '/me/comments',
+    firebaseAuthMiddleware,
+    isAuthenticated,
+    asyncHandler(userController.getMyComments)
+);
 
 router.get('/:id/works', asyncHandler(userController.getUserWorks));
 router.get('/:id/posts', asyncHandler(userController.getUserPosts));
@@ -33,10 +66,33 @@ router.post('/auth', asyncHandler(userController.createUserAndAuthenticate));
 
 // update profile: сам користувач / модератор / адмін
 router.put(
+    '/me',
+    firebaseAuthMiddleware,
+    isAuthenticated,
+    asyncHandler(userController.updateMe)
+);
+
+router.post(
+    '/me/avatar',
+    firebaseAuthMiddleware,
+    isAuthenticated,
+    uploadImages.single('avatar'),
+    asyncHandler(userController.uploadMyAvatar)
+);
+
+router.put(
     '/:id',
     firebaseAuthMiddleware,
-    isOwnerOrModeratorOrAdmin((req) => req.params.id),
+    isOwner((req) => req.params.id),
     asyncHandler(userController.updateUser)
+);
+
+router.post(
+    '/:id/avatar',
+    firebaseAuthMiddleware,
+    isOwner((req) => req.params.id),
+    uploadImages.single('avatar'),
+    asyncHandler(userController.uploadAvatar)
 );
 
 // change role: тільки адмін

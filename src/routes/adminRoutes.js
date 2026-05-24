@@ -3,7 +3,7 @@ const router = express.Router();
 
 const adminController = require('../controllers/adminController');
 const firebaseAuthMiddleware = require('../middlewares/firebaseAuthMiddleware');
-const { isAuthenticated, isAdmin } = require('../middlewares/roleMiddleware');
+const { isAuthenticated, isAdmin, isModeratorOrAdmin } = require('../middlewares/roleMiddleware');
 
 const asyncHandler = (fn) => (req, res, next) => {
     Promise.resolve(fn(req, res, next)).catch(next);
@@ -11,188 +11,30 @@ const asyncHandler = (fn) => (req, res, next) => {
 
 router.use(firebaseAuthMiddleware);
 router.use(isAuthenticated);
-router.use(isAdmin);
 
-/**
- * @swagger
- * tags:
- *   - name: Admin
- *     description: Адміністративне керування платформою
- */
+// moderator + admin
+router.get('/stats', isModeratorOrAdmin, asyncHandler(adminController.getStats));
+router.get('/works', isModeratorOrAdmin, asyncHandler(adminController.getAdminWorks));
+router.get('/posts', isModeratorOrAdmin, asyncHandler(adminController.getAdminPosts));
+router.get('/comments', isModeratorOrAdmin, asyncHandler(adminController.getAdminComments));
 
-/**
- * @swagger
- * /api/admin/stats:
- *   get:
- *     summary: Загальна статистика адмін-панелі
- *     tags: [Admin]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: OK
- */
-router.get('/stats', asyncHandler(adminController.getStats));
+router.get('/reports', isModeratorOrAdmin, asyncHandler(adminController.getReports));
+router.get('/reports/status/:status', isModeratorOrAdmin, asyncHandler(adminController.getReportsByStatus));
+router.patch('/reports/:id/status', isModeratorOrAdmin, asyncHandler(adminController.updateReportStatus));
+router.delete('/reports/:id', isModeratorOrAdmin, asyncHandler(adminController.deleteReport));
 
-/**
- * @swagger
- * /api/admin/users:
- *   get:
- *     summary: Отримати всіх користувачів
- *     tags: [Admin]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: OK
- */
-router.get('/users', asyncHandler(adminController.getUsers));
+router.patch('/works/:id/status', isModeratorOrAdmin, asyncHandler(adminController.updateWorkStatus));
+router.patch('/posts/:id/status', isModeratorOrAdmin, asyncHandler(adminController.updatePostStatus));
+router.patch('/comments/:id/status', isModeratorOrAdmin, asyncHandler(adminController.updateCommentStatus));
+router.delete('/works/:id', isModeratorOrAdmin, asyncHandler(adminController.deleteWork));
+router.delete('/posts/:id', isModeratorOrAdmin, asyncHandler(adminController.deletePost));
+router.delete('/comments/:id', isModeratorOrAdmin, asyncHandler(adminController.deleteComment));
 
-/**
- * @swagger
- * /api/admin/users/search:
- *   get:
- *     summary: Пошук користувачів
- *     tags: [Admin]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: query
- *         required: false
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: OK
- */
-router.get('/users/search', asyncHandler(adminController.searchUsers));
-
-/**
- * @swagger
- * /api/admin/users/{id}/role:
- *   patch:
- *     summary: Змінити роль користувача
- *     tags: [Admin]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - role
- *             properties:
- *               role:
- *                 type: string
- *                 enum: [user, moderator, admin]
- *                 example: moderator
- *     responses:
- *       200:
- *         description: OK
- */
-router.patch('/users/:id/role', asyncHandler(adminController.updateUserRole));
-
-/**
- * @swagger
- * /api/admin/users/{id}/block:
- *   patch:
- *     summary: Заблокувати або розблокувати користувача
- *     tags: [Admin]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - is_blocked
- *             properties:
- *               is_blocked:
- *                 type: boolean
- *                 example: true
- *     responses:
- *       200:
- *         description: OK
- */
-router.patch('/users/:id/block', asyncHandler(adminController.updateUserBlockedStatus));
-
-/**
- * @swagger
- * /api/admin/users/{id}:
- *   delete:
- *     summary: Видалити користувача
- *     tags: [Admin]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: OK
- */
-router.delete('/users/:id', asyncHandler(adminController.deleteUser));
-
-/**
- * @swagger
- * /api/admin/works/{id}/status:
- *   patch:
- *     summary: Змінити статус роботи
- *     tags: [Admin]
- *     security:
- *       - bearerAuth: []
- */
-router.patch('/works/:id/status', asyncHandler(adminController.updateWorkStatus));
-
-/**
- * @swagger
- * /api/admin/posts/{id}/status:
- *   patch:
- *     summary: Змінити статус поста
- *     tags: [Admin]
- *     security:
- *       - bearerAuth: []
- */
-router.patch('/posts/:id/status', asyncHandler(adminController.updatePostStatus));
-
-/**
- * @swagger
- * /api/admin/comments/{id}/status:
- *   patch:
- *     summary: Змінити статус коментаря
- *     tags: [Admin]
- *     security:
- *       - bearerAuth: []
- */
-router.patch('/comments/:id/status', asyncHandler(adminController.updateCommentStatus));
-
-router.delete('/works/:id', asyncHandler(adminController.deleteWork));
-router.delete('/posts/:id', asyncHandler(adminController.deletePost));
-router.delete('/comments/:id', asyncHandler(adminController.deleteComment));
-
-router.get('/reports', asyncHandler(adminController.getReports));
-router.get('/reports/status/:status', asyncHandler(adminController.getReportsByStatus));
-router.patch('/reports/:id/status', asyncHandler(adminController.updateReportStatus));
-router.delete('/reports/:id', asyncHandler(adminController.deleteReport));
+// admin only
+router.get('/users', isAdmin, asyncHandler(adminController.getUsers));
+router.get('/users/search', isAdmin, asyncHandler(adminController.searchUsers));
+router.patch('/users/:id/role', isAdmin, asyncHandler(adminController.updateUserRole));
+router.patch('/users/:id/block', isAdmin, asyncHandler(adminController.updateUserBlockedStatus));
+router.delete('/users/:id', isAdmin, asyncHandler(adminController.deleteUser));
 
 module.exports = router;

@@ -70,6 +70,21 @@ const getReportsByStatus = async (req, res) => {
     res.json(reports);
 };
 
+const getAdminWorks = async (req, res) => {
+    const works = await adminService.getAdminWorks();
+    res.json(works);
+};
+
+const getAdminPosts = async (req, res) => {
+    const posts = await adminService.getAdminPosts();
+    res.json(posts);
+};
+
+const getAdminComments = async (req, res) => {
+    const comments = await adminService.getAdminComments();
+    res.json(comments);
+};
+
 const updateReportStatus = async (req, res) => {
     const result = await adminService.updateReportStatus(req.params.id, req.body.status);
     res.json(result);
@@ -95,6 +110,9 @@ module.exports = {
     deleteComment,
     getReports,
     getReportsByStatus,
+    getAdminWorks,
+    getAdminPosts,
+    getAdminComments,
     updateReportStatus,
     deleteReport
 };

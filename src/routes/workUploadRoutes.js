@@ -7,7 +7,7 @@ const firebaseAuthMiddleware = require('../middlewares/firebaseAuthMiddleware');
 
 const {
     isAuthenticated,
-    isOwnerOrModeratorOrAdmin
+    isOwner
 } = require('../middlewares/roleMiddleware');
 
 const workRepository = require('../repositories/workRepository');
@@ -82,7 +82,7 @@ router.post(
     '/:workId/images',
     firebaseAuthMiddleware,
     isAuthenticated,
-    isOwnerOrModeratorOrAdmin(getWorkOwnerByWorkId),
+    isOwner(getWorkOwnerByWorkId),
     uploadImages.array('images', 10),
     asyncHandler(workUploadController.uploadWorkImages)
 );
@@ -116,7 +116,7 @@ router.delete(
     '/images/:imageId',
     firebaseAuthMiddleware,
     isAuthenticated,
-    isOwnerOrModeratorOrAdmin(getWorkOwnerByImageId),
+    isOwner(getWorkOwnerByImageId),
     asyncHandler(workUploadController.deleteWorkImage)
 );
 
@@ -133,7 +133,7 @@ router.post(
     '/:workId/chapters',
     firebaseAuthMiddleware,
     isAuthenticated,
-    isOwnerOrModeratorOrAdmin(getWorkOwnerByWorkId),
+    isOwner(getWorkOwnerByWorkId),
     asyncHandler(workUploadController.createWorkChapter)
 );
 
@@ -174,7 +174,7 @@ router.put(
     '/chapters/:chapterId',
     firebaseAuthMiddleware,
     isAuthenticated,
-    isOwnerOrModeratorOrAdmin(getWorkOwnerByChapterId),
+    isOwner(getWorkOwnerByChapterId),
     asyncHandler(workUploadController.updateChapterContent)
 );
 
@@ -191,7 +191,7 @@ router.delete(
     '/chapters/:chapterId',
     firebaseAuthMiddleware,
     isAuthenticated,
-    isOwnerOrModeratorOrAdmin(getWorkOwnerByChapterId),
+    isOwner(getWorkOwnerByChapterId),
     asyncHandler(workUploadController.deleteChapter)
 );
 

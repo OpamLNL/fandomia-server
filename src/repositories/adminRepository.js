@@ -130,6 +130,43 @@ const getReportsByStatus = async (status) => {
     `, [status]);
 };
 
+const getAdminWorks = async () => {
+    return await query(`
+        SELECT
+            w.*,
+            u.name AS author_name,
+            f.name AS fandom_name
+        FROM works w
+                 LEFT JOIN users u ON w.user_id = u.id
+                 LEFT JOIN fandoms f ON w.fandom_id = f.id
+        ORDER BY w.created_at DESC
+    `);
+};
+
+const getAdminPosts = async () => {
+    return await query(`
+        SELECT
+            p.*,
+            u.name AS author_name,
+            f.name AS fandom_name
+        FROM posts p
+                 LEFT JOIN users u ON p.user_id = u.id
+                 LEFT JOIN fandoms f ON p.fandom_id = f.id
+        ORDER BY p.created_at DESC
+    `);
+};
+
+const getAdminComments = async () => {
+    return await query(`
+        SELECT
+            c.*,
+            u.name AS author_name
+        FROM comments c
+                 LEFT JOIN users u ON c.user_id = u.id
+        ORDER BY c.created_at DESC
+    `);
+};
+
 const updateReportStatus = async (id, status) => {
     await query(`
         UPDATE reports
@@ -160,6 +197,9 @@ module.exports = {
     deleteComment,
     getReports,
     getReportsByStatus,
+    getAdminWorks,
+    getAdminPosts,
+    getAdminComments,
     updateReportStatus,
     deleteReport
 };

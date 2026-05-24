@@ -45,6 +45,31 @@ const getUserStats = async (req, res) => {
     res.json(stats);
 };
 
+const getMe = async (req, res) => {
+    const user = await userService.getUserById(req.user.id);
+    res.json(user);
+};
+
+const getMyWorks = async (req, res) => {
+    const works = await userService.getUserWorks(req.user.id);
+    res.json(works);
+};
+
+const getMyPosts = async (req, res) => {
+    const posts = await userService.getUserPosts(req.user.id);
+    res.json(posts);
+};
+
+const getMyComments = async (req, res) => {
+    const comments = await userService.getUserComments(req.user.id);
+    res.json(comments);
+};
+
+const getMyReceivedComments = async (req, res) => {
+    const comments = await userService.getReceivedComments(req.user.id);
+    res.json(comments);
+};
+
 const createUser = async (req, res) => {
     const user = await userService.createUser(req.body);
     res.status(201).json(user);
@@ -56,6 +81,21 @@ const createUserAndAuthenticate = async (req, res) => {
 
 const updateUser = async (req, res) => {
     const user = await userService.updateUser(req.params.id, req.body);
+    res.json(user);
+};
+
+const updateMe = async (req, res) => {
+    const user = await userService.updateUser(req.user.id, req.body);
+    res.json(user);
+};
+
+const uploadAvatar = async (req, res) => {
+    const user = await userService.uploadUserAvatar(req.params.id, req.file, req.user);
+    res.json(user);
+};
+
+const uploadMyAvatar = async (req, res) => {
+    const user = await userService.uploadUserAvatar(req.user.id, req.file, req.user);
     res.json(user);
 };
 
@@ -84,9 +124,17 @@ module.exports = {
     getUserPosts,
     getUserComments,
     getUserStats,
+    getMe,
+    getMyWorks,
+    getMyPosts,
+    getMyComments,
+    getMyReceivedComments,
     createUser,
     createUserAndAuthenticate,
     updateUser,
+    updateMe,
+    uploadAvatar,
+    uploadMyAvatar,
     updateUserRole,
     updateUserBlockedStatus,
     deleteUser

@@ -1,5 +1,6 @@
 const commentRepository = require('../repositories/commentRepository');
 const { COMMENT_TARGETS, createCommentEntity } = require('../models/commentModel');
+const notificationService = require('./notificationService');
 
 const getCommentsByTarget = async (targetType, targetId) => {
     if (!Object.values(COMMENT_TARGETS).includes(targetType)) {
@@ -41,6 +42,13 @@ const createComment = async (data, user) => {
         target_type,
         target_id,
         content: content.trim()
+    });
+
+    notificationService.notifyComment({
+        actor_id: user_id,
+        target_type,
+        target_id,
+        content: content.trim(),
     });
 
     return await getCommentById(comment.id);

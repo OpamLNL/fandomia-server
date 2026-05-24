@@ -35,7 +35,7 @@ const getWorksByFandomId = async (fandomId) => {
             u.avatar_url AS author_avatar
         FROM works w
         LEFT JOIN users u ON w.user_id = u.id
-        WHERE w.fandom_id = ?
+        WHERE w.fandom_id = ? AND w.status = 'active'
         ORDER BY w.created_at DESC
     `, [fandomId]);
 };
@@ -48,7 +48,7 @@ const getPostsByFandomId = async (fandomId) => {
             u.avatar_url AS author_avatar
         FROM posts p
         LEFT JOIN users u ON p.user_id = u.id
-        WHERE p.fandom_id = ?
+        WHERE p.fandom_id = ? AND p.status = 'active'
         ORDER BY p.created_at DESC
     `, [fandomId]);
 };
@@ -57,21 +57,21 @@ const getFandomStats = async (fandomId) => {
     const worksCount = await query(`
         SELECT COUNT(*) AS count
         FROM works
-        WHERE fandom_id = ?
+        WHERE fandom_id = ? AND status = 'active'
     `, [fandomId]);
 
     const postsCount = await query(`
         SELECT COUNT(*) AS count
         FROM posts
-        WHERE fandom_id = ?
+        WHERE fandom_id = ? AND status = 'active'
     `, [fandomId]);
 
     const authorsCount = await query(`
         SELECT COUNT(DISTINCT user_id) AS count
         FROM (
-            SELECT user_id FROM works WHERE fandom_id = ?
+            SELECT user_id FROM works WHERE fandom_id = ? AND status = 'active'
             UNION
-            SELECT user_id FROM posts WHERE fandom_id = ?
+            SELECT user_id FROM posts WHERE fandom_id = ? AND status = 'active'
         ) AS authors
     `, [fandomId, fandomId]);
 
@@ -83,7 +83,7 @@ const getFandomStats = async (fandomId) => {
         FROM tags t
         JOIN work_tags wt ON t.id = wt.tag_id
         JOIN works w ON wt.work_id = w.id
-        WHERE w.fandom_id = ?
+        WHERE w.fandom_id = ? AND w.status = 'active'
         GROUP BY t.id, t.name
         ORDER BY usage_count DESC
         LIMIT 10

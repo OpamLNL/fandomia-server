@@ -72,10 +72,24 @@ router.post(
  *         description: OK
  */
 router.get(
-    '/user/:userId',
+    '/me',
     firebaseAuthMiddleware,
     isAuthenticated,
     asyncHandler(favoriteController.getUserFavorites)
+);
+
+router.get(
+    '/me/items',
+    firebaseAuthMiddleware,
+    isAuthenticated,
+    asyncHandler(favoriteController.getUserFavoriteItems)
+);
+
+router.get(
+    '/user/:userId',
+    firebaseAuthMiddleware,
+    isAuthenticated,
+    asyncHandler(favoriteController.getUserFavoritesById)
 );
 
 module.exports = router;

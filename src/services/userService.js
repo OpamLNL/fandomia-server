@@ -2,14 +2,31 @@ const userRepository = require('../repositories/userRepository');
 const { generateTokens } = require('../services/authService');
 const { USER_ROLES, createUserEntity } = require('../models/userModel');
 
+const fileUploadService = require('./fileUploadService');
+
 const DEFAULT_AVATAR = '/images/users/default_avatar.png';
 
+const resolveUserId = async (idOrUid) => {
+    const raw = String(idOrUid).trim();
+
+    if (/^\d+$/.test(raw)) {
+        const user = await userRepository.getUserById(Number(raw));
+        if (!user) throw new Error('Користувача не знайдено');
+        return user.id;
+    }
+
+    const user = await userRepository.getUserByFirebaseUid(raw);
+    if (!user) throw new Error('Користувача не знайдено');
+    return user.id;
+};
+
 const getUserById = async (userId) => {
-    const user = await userRepository.getUserById(userId);
+    const id = await resolveUserId(userId);
+    const user = await userRepository.getUserById(id);
 
     if (!user) throw new Error('Користувача не знайдено');
 
-    const stats = await userRepository.getUserStats(userId);
+    const stats = await userRepository.getUserStats(id);
 
     return createUserEntity({ ...user, ...stats });
 };
@@ -45,35 +62,48 @@ const searchUsers = async (searchQuery) => {
 };
 
 const getUserWorks = async (userId) => {
-    const user = await userRepository.getUserById(userId);
+    const id = await resolveUserId(userId);
+    const user = await userRepository.getUserById(id);
 
     if (!user) throw new Error('Користувача не знайдено');
 
-    return await userRepository.getUserWorks(userId);
+    return await userRepository.getUserWorks(id);
 };
 
 const getUserPosts = async (userId) => {
-    const user = await userRepository.getUserById(userId);
+    const id = await resolveUserId(userId);
+    const user = await userRepository.getUserById(id);
 
     if (!user) throw new Error('Користувача не знайдено');
 
-    return await userRepository.getUserPosts(userId);
+    return await userRepository.getUserPosts(id);
 };
 
 const getUserComments = async (userId) => {
-    const user = await userRepository.getUserById(userId);
+    const id = await resolveUserId(userId);
+    const user = await userRepository.getUserById(id);
 
     if (!user) throw new Error('Користувача не знайдено');
 
-    return await userRepository.getUserComments(userId);
+    return await userRepository.getUserComments(id);
+};
+
+const getReceivedComments = async (userId) => {
+    const id = await resolveUserId(userId);
+    const user = await userRepository.getUserById(id);
+
+    if (!user) throw new Error('Користувача не знайдено');
+
+    return await userRepository.getReceivedComments(id);
 };
 
 const getUserStats = async (userId) => {
-    const user = await userRepository.getUserById(userId);
+    const id = await resolveUserId(userId);
+    const user = await userRepository.getUserById(id);
 
     if (!user) throw new Error('Користувача не знайдено');
 
-    return await userRepository.getUserStats(userId);
+    return await userRepository.getUserStats(id);
 };
 
 const createUser = async ({ firebase_uid, email, name, avatar_url, role }) => {
@@ -131,9 +161,32 @@ const updateUser = async (userId, userData) => {
     if (!existing) throw new Error('Користувача не знайдено');
 
     await userRepository.updateUser(userId, {
-        email: userData.email || existing.email,
-        name: userData.name || existing.name,
-        avatar_url: userData.avatar_url || existing.avatar_url
+        email: userData.email !== undefined ? userData.email : existing.email,
+        name: userData.name !== undefined ? userData.name : existing.name,
+        avatar_url: userData.avatar_url !== undefined ? userData.avatar_url : existing.avatar_url,
+    });
+
+    return await getUserById(userId);
+};
+
+const uploadUserAvatar = async (userId, file, user) => {
+    if (user?.is_blocked) {
+        throw new Error('Користувач заблокований');
+    }
+
+    const existing = await userRepository.getUserById(userId);
+    if (!existing) throw new Error('Користувача не знайдено');
+
+    if (!file) {
+        throw new Error('Файл аватара не передано');
+    }
+
+    const avatarPath = await fileUploadService.saveUserAvatar(userId, file);
+
+    await userRepository.updateUser(userId, {
+        email: existing.email,
+        name: existing.name,
+        avatar_url: avatarPath,
     });
 
     return await getUserById(userId);
@@ -182,10 +235,12 @@ module.exports = {
     getUserWorks,
     getUserPosts,
     getUserComments,
+    getReceivedComments,
     getUserStats,
     createUser,
     createUserAndAuthenticate,
     updateUser,
+    uploadUserAvatar,
     updateUserRole,
     updateUserBlockedStatus,
     deleteUser

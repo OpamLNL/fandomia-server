@@ -43,9 +43,30 @@ const isOwnerOrModeratorOrAdmin = (getOwnerId) => {
     };
 };
 
+const isOwner = (getOwnerId) => {
+    return async (req, res, next) => {
+        try {
+            if (!req.user) {
+                return res.status(401).json({ error: 'Не авторизований' });
+            }
+
+            const ownerId = await getOwnerId(req);
+
+            if (Number(ownerId) !== Number(req.user.id)) {
+                return res.status(403).json({ error: 'Немає доступу' });
+            }
+
+            next();
+        } catch (err) {
+            next(err);
+        }
+    };
+};
+
 module.exports = {
     isAuthenticated,
     isAdmin,
     isModeratorOrAdmin,
-    isOwnerOrModeratorOrAdmin
+    isOwnerOrModeratorOrAdmin,
+    isOwner
 };

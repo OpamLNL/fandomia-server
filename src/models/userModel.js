@@ -16,7 +16,11 @@ const createUserEntity = ({
                               works_count,
                               posts_count,
                               comments_count,
-                              likes_count
+                              likes_count,
+                              likes_received_count,
+                              favorites_count,
+                              followers_count,
+                              following_count
                           }) => ({
     id,
     firebase_uid,
@@ -26,10 +30,14 @@ const createUserEntity = ({
     role,
     is_blocked: Boolean(is_blocked),
     created_at,
-    works_count: works_count || 0,
-    posts_count: posts_count || 0,
-    comments_count: comments_count || 0,
-    likes_count: likes_count || 0
+    works_count: Number(works_count ?? 0),
+    posts_count: Number(posts_count ?? 0),
+    comments_count: Number(comments_count ?? 0),
+    likes_count: Number(likes_count ?? 0),
+    likes_received_count: Number(likes_received_count ?? 0),
+    favorites_count: Number(favorites_count ?? 0),
+    followers_count: Number(followers_count ?? 0),
+    following_count: Number(following_count ?? 0),
 });
 
 module.exports = {

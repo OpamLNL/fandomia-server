@@ -84,6 +84,18 @@ const getReportsByStatus = async (status) => {
     return await adminRepository.getReportsByStatus(status);
 };
 
+const getAdminWorks = async () => {
+    return await adminRepository.getAdminWorks();
+};
+
+const getAdminPosts = async () => {
+    return await adminRepository.getAdminPosts();
+};
+
+const getAdminComments = async () => {
+    return await adminRepository.getAdminComments();
+};
+
 const updateReportStatus = async (id, status) => {
     if (!REPORT_STATUSES.includes(status)) {
         throw new Error('Некоректний статус скарги');
@@ -111,6 +123,9 @@ module.exports = {
     deleteComment,
     getReports,
     getReportsByStatus,
+    getAdminWorks,
+    getAdminPosts,
+    getAdminComments,
     updateReportStatus,
     deleteReport
 };

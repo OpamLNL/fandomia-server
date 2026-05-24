@@ -80,6 +80,38 @@ const getUserComments = async (userId) => {
     `, [userId]);
 };
 
+const getReceivedComments = async (userId, limit = 50) => {
+    return query(
+        `SELECT
+            c.id,
+            c.content,
+            c.target_type,
+            c.target_id,
+            c.status,
+            c.created_at,
+            c.user_id AS author_id,
+            u.name AS author_name,
+            u.avatar_url AS author_avatar,
+            CASE
+                WHEN c.target_type = 'work' THEN w.title
+                WHEN c.target_type = 'post' THEN p.title
+            END AS target_title
+         FROM comments c
+         JOIN users u ON u.id = c.user_id
+         LEFT JOIN works w ON c.target_type = 'work' AND c.target_id = w.id
+         LEFT JOIN posts p ON c.target_type = 'post' AND c.target_id = p.id
+         WHERE c.status = 'active'
+           AND c.user_id != ?
+           AND (
+               (c.target_type = 'work' AND w.user_id = ?)
+               OR (c.target_type = 'post' AND p.user_id = ?)
+           )
+         ORDER BY c.created_at DESC
+         LIMIT ?`,
+        [userId, userId, userId, limit]
+    );
+};
+
 const getUserStats = async (userId) => {
     const works = await query(`
         SELECT COUNT(*) AS count
@@ -105,11 +137,47 @@ const getUserStats = async (userId) => {
         WHERE user_id = ?
     `, [userId]);
 
+    const likesReceived = await query(`
+        SELECT COUNT(*) AS count
+        FROM likes l
+        WHERE (l.target_type = 'work' AND l.target_id IN (
+            SELECT id FROM works WHERE user_id = ?
+        ))
+        OR (l.target_type = 'post' AND l.target_id IN (
+            SELECT id FROM posts WHERE user_id = ?
+        ))
+        OR (l.target_type = 'comment' AND l.target_id IN (
+            SELECT id FROM comments WHERE user_id = ?
+        ))
+    `, [userId, userId, userId]);
+
+    const favorites = await query(`
+        SELECT COUNT(*) AS count
+        FROM favorites
+        WHERE user_id = ?
+    `, [userId]);
+
+    const followers = await query(`
+        SELECT COUNT(*) AS count
+        FROM user_follows
+        WHERE following_id = ?
+    `, [userId]);
+
+    const following = await query(`
+        SELECT COUNT(*) AS count
+        FROM user_follows
+        WHERE follower_id = ?
+    `, [userId]);
+
     return {
-        works_count: works[0].count,
-        posts_count: posts[0].count,
-        comments_count: comments[0].count,
-        likes_count: likes[0].count
+        works_count: Number(works[0].count ?? 0),
+        posts_count: Number(posts[0].count ?? 0),
+        comments_count: Number(comments[0].count ?? 0),
+        likes_count: Number(likes[0].count ?? 0),
+        likes_received_count: Number(likesReceived[0].count ?? 0),
+        favorites_count: Number(favorites[0].count ?? 0),
+        followers_count: Number(followers[0].count ?? 0),
+        following_count: Number(following[0].count ?? 0),
     };
 };
 
@@ -214,6 +282,7 @@ module.exports = {
     getUserWorks,
     getUserPosts,
     getUserComments,
+    getReceivedComments,
     getUserStats,
     createUser,
     updateUser,

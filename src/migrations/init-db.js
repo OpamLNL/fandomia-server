@@ -26,6 +26,8 @@ async function dropTables() {
 
     await query(`
         DROP TABLE IF EXISTS
+            notifications,
+            user_follows,
             favorites,
             reports,
             likes,
@@ -58,6 +60,7 @@ async function createTables() {
             avatar_url TEXT,
             role ENUM('user','moderator','admin') DEFAULT 'user',
             is_blocked BOOLEAN DEFAULT FALSE,
+            feed_last_seen_at TIMESTAMP NULL DEFAULT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
     `);
@@ -180,6 +183,17 @@ async function createTables() {
 
 
     await query(`
+        CREATE TABLE IF NOT EXISTS user_follows (
+            follower_id INT NOT NULL,
+            following_id INT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (follower_id, following_id),
+            FOREIGN KEY (follower_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (following_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+    `);
+
+    await query(`
         CREATE TABLE IF NOT EXISTS favorites (
                                                  user_id INT NOT NULL,
                                                  target_type ENUM('work','post') NOT NULL,
@@ -194,6 +208,23 @@ async function createTables() {
 
 
     await query(`
+        CREATE TABLE IF NOT EXISTS notifications (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            actor_id INT NOT NULL,
+            type ENUM('like', 'comment', 'follow') NOT NULL,
+            target_type ENUM('work', 'post', 'comment', 'user') NULL,
+            target_id INT NULL,
+            preview TEXT NULL,
+            is_read BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (actor_id) REFERENCES users(id) ON DELETE CASCADE,
+            INDEX idx_notifications_user (user_id, is_read, created_at)
+        )
+    `);
+
+    await query(`
         CREATE TABLE IF NOT EXISTS likes (
             user_id INT,
             target_type ENUM('work','post','comment') NOT NULL,
@@ -201,6 +232,23 @@ async function createTables() {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (user_id, target_type, target_id),
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+    `);
+
+    await query(`
+        CREATE TABLE IF NOT EXISTS notifications (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            actor_id INT NOT NULL,
+            type ENUM('like', 'comment', 'follow') NOT NULL,
+            target_type ENUM('work', 'post', 'comment', 'user') NULL,
+            target_id INT NULL,
+            preview TEXT NULL,
+            is_read BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (actor_id) REFERENCES users(id) ON DELETE CASCADE,
+            INDEX idx_notifications_user (user_id, is_read, created_at)
         )
     `);
 

@@ -7,6 +7,7 @@ const firebaseAuthMiddleware = require('../middlewares/firebaseAuthMiddleware');
 const {
     isAuthenticated,
     isAdmin,
+    isOwner,
     isOwnerOrModeratorOrAdmin
 } = require('../middlewares/roleMiddleware');
 
@@ -129,7 +130,7 @@ router.post(
     '/works/:workId/:tagId',
     firebaseAuthMiddleware,
     isAuthenticated,
-    isOwnerOrModeratorOrAdmin(getWorkOwnerByWorkId),
+    isOwner(getWorkOwnerByWorkId),
     asyncHandler(tagController.addTagToWork)
 );
 
@@ -160,7 +161,7 @@ router.delete(
     '/works/:workId/:tagId',
     firebaseAuthMiddleware,
     isAuthenticated,
-    isOwnerOrModeratorOrAdmin(getWorkOwnerByWorkId),
+    isOwner(getWorkOwnerByWorkId),
     asyncHandler(tagController.removeTagFromWork)
 );
 

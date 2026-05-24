@@ -2,6 +2,8 @@
 
 const { query } = require('../config/database');
 const init = require('./init-db');
+const { ensureFollowsSchema } = require('./add-follows');
+const { ensureNotificationsSchema } = require('./add-notifications');
 
 const REQUIRED_TABLES = [
     'users',
@@ -33,6 +35,9 @@ async function checkAndInitDatabase() {
         } else {
             console.log('✅ All tables exist.');
         }
+
+        await ensureFollowsSchema();
+        await ensureNotificationsSchema();
     } catch (err) {
         console.error('❌ DB CHECK ERROR:', err);
         throw err;

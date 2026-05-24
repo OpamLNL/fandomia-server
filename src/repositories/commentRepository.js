@@ -2,18 +2,26 @@ const { query } = require('../config/database');
 
 const getCommentsByTarget = async (type, id) => {
     return await query(`
-        SELECT *
-        FROM comments
-        WHERE target_type = ? AND target_id = ? AND status = 'active'
-        ORDER BY created_at ASC
+        SELECT
+            c.*,
+            u.name AS author_name,
+            u.avatar_url AS author_avatar
+        FROM comments c
+                 LEFT JOIN users u ON c.user_id = u.id
+        WHERE c.target_type = ? AND c.target_id = ? AND c.status = 'active'
+        ORDER BY c.created_at ASC
     `, [type, id]);
 };
 
 const getCommentById = async (id) => {
     const rows = await query(`
-        SELECT *
-        FROM comments
-        WHERE id = ?
+        SELECT
+            c.*,
+            u.name AS author_name,
+            u.avatar_url AS author_avatar
+        FROM comments c
+                 LEFT JOIN users u ON c.user_id = u.id
+        WHERE c.id = ?
     `, [id]);
 
     return rows[0];

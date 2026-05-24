@@ -7,7 +7,7 @@ const workRepository = require('../repositories/workRepository');
 const firebaseAuthMiddleware = require('../middlewares/firebaseAuthMiddleware');
 const {
     isAuthenticated,
-    isOwnerOrModeratorOrAdmin
+    isOwner
 } = require('../middlewares/roleMiddleware');
 
 const asyncHandler = (fn) => (req, res, next) => {
@@ -46,7 +46,7 @@ router.put(
     '/:id',
     firebaseAuthMiddleware,
     isAuthenticated,
-    isOwnerOrModeratorOrAdmin(getWorkOwner),
+    isOwner(getWorkOwner),
     asyncHandler(workController.updateWork)
 );
 
@@ -54,7 +54,7 @@ router.delete(
     '/:id',
     firebaseAuthMiddleware,
     isAuthenticated,
-    isOwnerOrModeratorOrAdmin(getWorkOwner),
+    isOwner(getWorkOwner),
     asyncHandler(workController.deleteWork)
 );
 

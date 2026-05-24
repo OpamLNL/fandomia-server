@@ -31,4 +31,4 @@ logs/
 Thumbs.db
 
 # Custom files or directories to ignore
-/secrets/fandomia-auth-firebase-adminsdk-fbsvc-a4afaa77e2.json
+/secrets/*.json

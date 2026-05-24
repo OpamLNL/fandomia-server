@@ -1,5 +1,6 @@
 const likeRepository = require('../repositories/likeRepository');
 const { LIKE_TARGETS, createLikeEntity } = require('../models/likeModel');
+const notificationService = require('./notificationService');
 
 const validateTargetType = (targetType) => {
     if (!Object.values(LIKE_TARGETS).includes(targetType)) {
@@ -38,6 +39,8 @@ const toggleLike = async ({ user_id, target_type, target_id }, user) => {
     await likeRepository.createLike(user_id, target_type, target_id);
 
     const count = await likeRepository.getLikesCount(target_type, target_id);
+
+    notificationService.notifyLike({ actor_id: user_id, target_type, target_id });
 
     return {
         liked: true,
