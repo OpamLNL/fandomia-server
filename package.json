@@ -4,7 +4,9 @@
   "scripts": {
     "start": "node ./src/server.js",
     "dev": "node ./src/server.js",
-    "db:reset": "node ./src/migrations/init-db.js"
+    "db:reset": "node ./src/migrations/init-db.js",
+    "migrate:imgbb": "node ./scripts/migrate-local-media-to-imgbb.js",
+    "media:public": "node ./scripts/replace-local-media-with-public-urls.js"
   },
   "dependencies": {
     "axios": "^1.9.0",

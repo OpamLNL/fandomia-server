@@ -9,6 +9,7 @@ const healthRoutes = require('./routes/healthRoutes');
 const { setupSwagger } = require('./swagger');
 const { checkAndInitDatabase } = require('./migrations/db-checker');
 const { createCorsMiddleware, applyCorsHeaders } = require('./corsConfig');
+const { createMediaUrlResponseMiddleware } = require('./utils/mediaUrl');
 
 let dbInitPromise = null;
 
@@ -26,6 +27,7 @@ function createApp() {
     const app = express();
 
     app.use(createCorsMiddleware());
+    app.use(createMediaUrlResponseMiddleware());
 
     app.use(express.json());
     app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
