@@ -169,11 +169,12 @@ const deletePostTags = async (postId) => {
 
 const createPost = async (data) => {
     const result = await query(`
-        INSERT INTO posts (user_id, fandom_id, title, content, type, content_rating, status)
-        VALUES (?, ?, ?, ?, ?, ?, 'active')
+        INSERT INTO posts (user_id, fandom_id, work_id, title, content, type, content_rating, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 'active')
     `, [
         data.user_id,
         data.fandom_id,
+        data.work_id || null,
         data.title,
         data.content,
         data.type || 'discussion',
@@ -186,10 +187,11 @@ const createPost = async (data) => {
 const updatePost = async (id, data) => {
     await query(`
         UPDATE posts
-        SET fandom_id = ?, title = ?, content = ?, type = ?, content_rating = ?
+        SET fandom_id = ?, work_id = ?, title = ?, content = ?, type = ?, content_rating = ?
         WHERE id = ?
     `, [
         data.fandom_id,
+        data.work_id ?? null,
         data.title,
         data.content,
         data.type,

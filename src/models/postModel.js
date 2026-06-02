@@ -8,6 +8,7 @@ const createPostEntity = ({
                               id,
                               user_id,
                               fandom_id,
+                              work_id,
                               title,
                               content,
                               type,
@@ -16,11 +17,13 @@ const createPostEntity = ({
                               author_name,
                               author_avatar,
                               fandom_name,
-                              tags
+                              tags,
+                              linked_work,
                           }) => ({
     id,
     user_id,
     fandom_id,
+    work_id: work_id || null,
     title,
     content,
     type,
@@ -29,7 +32,8 @@ const createPostEntity = ({
     author_name,
     author_avatar,
     fandom_name,
-    tags: tags || []
+    tags: tags || [],
+    linked_work: linked_work || null,
 });
 
 module.exports = {

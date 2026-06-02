@@ -29,7 +29,7 @@ const getPostById = async (req, res) => {
 };
 
 const getPostsByUserId = async (req, res) => {
-    const posts = await postService.getPostsByUserId(req.params.userId);
+    const posts = await postService.getPostsByUserId(req.params.userId, getViewerContext(req));
     res.json(posts);
 };
 

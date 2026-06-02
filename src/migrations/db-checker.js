@@ -8,6 +8,7 @@ const { ensureContentRatingSchema } = require('./add-content-rating');
 const { ensureContactMessagesSchema } = require('./add-contact-messages');
 const { ensureImgbbSchema } = require('./add-imgbb-fields');
 const { ensureChapterContentSchema } = require('./add-chapter-content');
+const { ensurePostWorkLinkSchema } = require('./add-post-work-link');
 
 const REQUIRED_TABLES = [
     'users',
@@ -46,6 +47,7 @@ async function checkAndInitDatabase() {
         await ensureContactMessagesSchema();
         await ensureImgbbSchema();
         await ensureChapterContentSchema();
+        await ensurePostWorkLinkSchema();
     } catch (err) {
         console.error('❌ DB CHECK ERROR:', err);
         throw err;
