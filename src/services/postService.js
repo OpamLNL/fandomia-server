@@ -79,9 +79,12 @@ const getAllPosts = async (query = {}, viewer = {}) => {
     const { page, limit, offset } = getPagination(query);
     const showMature = Boolean(viewer.showMature);
     const sort = query.sort === 'asc' ? 'asc' : 'desc';
+    const typeFilter = query.type && Object.values(POST_TYPES).includes(query.type)
+        ? query.type
+        : null;
 
-    const posts = await postRepository.getAllPosts(limit, offset, showMature, sort);
-    const total = await postRepository.countPosts(showMature);
+    const posts = await postRepository.getAllPosts(limit, offset, showMature, sort, typeFilter);
+    const total = await postRepository.countPosts(showMature, typeFilter);
     const enriched = await enrichPosts(posts, viewer);
 
     return buildPaginationResponse({

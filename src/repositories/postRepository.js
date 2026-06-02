@@ -1,8 +1,10 @@
 const { query } = require('../config/database');
 const { matureOnlySql } = require('../utils/contentRating');
 
-const getAllPosts = async (limit = 10, offset = 0, showMature = false, sort = 'desc') => {
+const getAllPosts = async (limit = 10, offset = 0, showMature = false, sort = 'desc', type = null) => {
     const order = sort === 'asc' ? 'ASC' : 'DESC';
+    const typeSql = type ? ' AND p.type = ?' : '';
+    const params = type ? [type, limit, offset] : [limit, offset];
 
     return await query(`
         SELECT
@@ -13,18 +15,21 @@ const getAllPosts = async (limit = 10, offset = 0, showMature = false, sort = 'd
         FROM posts p
                  LEFT JOIN users u ON p.user_id = u.id
                  LEFT JOIN fandoms f ON p.fandom_id = f.id
-        WHERE p.status = 'active'${matureOnlySql('p', showMature)}
+        WHERE p.status = 'active'${matureOnlySql('p', showMature)}${typeSql}
         ORDER BY p.created_at ${order}
         LIMIT ? OFFSET ?
-    `, [limit, offset]);
+    `, params);
 };
 
-const countPosts = async (showMature = false) => {
+const countPosts = async (showMature = false, type = null) => {
+    const typeSql = type ? ' AND p.type = ?' : '';
+    const params = type ? [type] : [];
+
     const rows = await query(`
         SELECT COUNT(*) AS count
         FROM posts p
-        WHERE p.status = 'active'${matureOnlySql('p', showMature)}
-    `);
+        WHERE p.status = 'active'${matureOnlySql('p', showMature)}${typeSql}
+    `, params);
 
     return rows[0].count;
 };
