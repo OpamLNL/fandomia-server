@@ -59,7 +59,6 @@ function createApp() {
     app.use(express.json());
     app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
-    // Публічні маршрути — без очікування БД
     app.use(healthRoutes);
     setupSwagger(app);
 

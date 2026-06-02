@@ -2,8 +2,8 @@ const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const http = require('http');
-const { createApp } = require('./src/app');
-const { closePool } = require('./src/config/database');
+const { createApp } = require('./createApp');
+const { closePool } = require('./config/database');
 
 const app = createApp();
 const PORT = process.env.PORT || 3000;
