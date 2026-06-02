@@ -247,11 +247,17 @@ const updateUser = async (id, data) => {
         email,
         name,
         avatar_url,
+        avatar_delete_url,
         show_mature_content,
     } = data;
 
     const fields = ['email = ?', 'name = ?', 'avatar_url = ?'];
     const values = [email || null, name || null, avatar_url || null];
+
+    if (avatar_delete_url !== undefined) {
+        fields.push('avatar_delete_url = ?');
+        values.push(avatar_delete_url || null);
+    }
 
     if (show_mature_content !== undefined) {
         fields.push('show_mature_content = ?', 'mature_confirmed_at = ?');

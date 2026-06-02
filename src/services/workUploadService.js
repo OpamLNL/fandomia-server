@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const fileUploadService = require('./fileUploadService');
+const imgbbService = require('./imgbbService');
 const workRepository = require('../repositories/workRepository');
 const workImageRepository = require('../repositories/workImageRepository');
 const chapterRepository = require('../repositories/chapterRepository');
@@ -37,12 +38,13 @@ const uploadWorkImages = async (workId, files, user) => {
     const savedImages = [];
 
     for (let i = 0; i < files.length; i++) {
-        const imagePath = await fileUploadService.saveWorkImage(workId, files[i]);
+        const uploaded = await fileUploadService.saveWorkImage(workId, files[i]);
 
         const image = await workImageRepository.createWorkImage({
             work_id: workId,
-            image_path: imagePath,
-            order_index: startIndex + i
+            image_path: uploaded.url,
+            delete_url: uploaded.deleteUrl,
+            order_index: startIndex + i,
         });
 
         savedImages.push(image);
@@ -142,10 +144,14 @@ const deleteWorkImage = async (imageId) => {
         throw new Error('Зображення не знайдено');
     }
 
-    const absolutePath = path.resolve(__dirname, '..', '..', image.image_path.replace(/^\/+/, ''));
+    if (image.delete_url) {
+        await imgbbService.deleteByUrl(image.delete_url);
+    } else if (imgbbService.isLocalUploadPath(image.image_path)) {
+        const absolutePath = path.resolve(__dirname, '..', '..', image.image_path.replace(/^\/+/, ''));
 
-    if (fs.existsSync(absolutePath)) {
-        fs.unlinkSync(absolutePath);
+        if (fs.existsSync(absolutePath)) {
+            fs.unlinkSync(absolutePath);
+        }
     }
 
     return await workImageRepository.deleteWorkImage(imageId);

@@ -19,14 +19,15 @@ const getImageById = async (id) => {
     return rows[0];
 };
 
-const createWorkImage = async ({ work_id, image_path, order_index }) => {
+const createWorkImage = async ({ work_id, image_path, order_index, delete_url }) => {
     const result = await query(`
-        INSERT INTO work_images (work_id, image_path, order_index)
-        VALUES (?, ?, ?)
+        INSERT INTO work_images (work_id, image_path, order_index, delete_url)
+        VALUES (?, ?, ?, ?)
     `, [
         work_id,
         image_path,
-        order_index || 0
+        order_index || 0,
+        delete_url || null,
     ]);
 
     return {

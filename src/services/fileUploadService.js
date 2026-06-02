@@ -1,72 +1,75 @@
 const fs = require('fs');
 const path = require('path');
+const imgbbService = require('./imgbbService');
+const { ensureUploadDir, getUploadsRoot } = require('../utils/uploadPaths');
 
-const UPLOADS_ROOT = path.resolve(__dirname, '..', '..', 'uploads');
+const getWorkImagesFolder = (workId) => ensureUploadDir('works', String(workId), 'images');
 
-const ensureDir = (dirPath) => {
-    if (!fs.existsSync(dirPath)) {
-        fs.mkdirSync(dirPath, { recursive: true });
-    }
-};
+const getUserFolder = (userId) => ensureUploadDir('users', String(userId));
 
-const getWorkFolder = (workId) => {
-    return path.join(UPLOADS_ROOT, 'works', String(workId));
-};
-
-const getWorkImagesFolder = (workId) => {
-    return path.join(getWorkFolder(workId), 'images');
-};
-
-const getWorkChaptersFolder = (workId) => {
-    return path.join(getWorkFolder(workId), 'chapters');
-};
-
-const getUserFolder = (userId) => {
-    return path.join(UPLOADS_ROOT, 'users', String(userId));
-};
+const getWorkChaptersFolder = (workId) => ensureUploadDir('works', String(workId), 'chapters');
 
 const getPublicPath = (absolutePath) => {
+    const root = path.resolve(__dirname, '..', '..');
+    const uploadsRoot = getUploadsRoot();
+
+    if (absolutePath.startsWith(uploadsRoot)) {
+        return absolutePath
+            .replace(uploadsRoot, '/uploads')
+            .replace(/\\/g, '/');
+    }
+
     return absolutePath
-        .replace(path.resolve(__dirname, '..', '..'), '')
+        .replace(root, '')
         .replace(/\\/g, '/');
 };
 
 const saveWorkImage = async (workId, file) => {
-    const imagesDir = getWorkImagesFolder(workId);
-    ensureDir(imagesDir);
+    if (imgbbService.isConfigured()) {
+        return await imgbbService.uploadImageFile(file, `work-${workId}`);
+    }
 
+    const imagesDir = getWorkImagesFolder(workId);
     const ext = path.extname(file.originalname);
     const fileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
     const filePath = path.join(imagesDir, fileName);
 
     fs.renameSync(file.path, filePath);
 
-    return getPublicPath(filePath);
+    return {
+        url: getPublicPath(filePath),
+        deleteUrl: null,
+    };
 };
 
 const saveUserAvatar = async (userId, file) => {
-    const userDir = getUserFolder(userId);
-    ensureDir(userDir);
+    if (imgbbService.isConfigured()) {
+        return await imgbbService.uploadImageFile(file, `avatar-${userId}`);
+    }
 
+    const userDir = getUserFolder(userId);
     const ext = path.extname(file.originalname) || '.jpg';
     const fileName = `avatar-${Date.now()}${ext}`;
     const filePath = path.join(userDir, fileName);
 
-    for (const entry of fs.readdirSync(userDir)) {
-        if (entry.startsWith('avatar')) {
-            fs.unlinkSync(path.join(userDir, entry));
+    if (fs.existsSync(userDir)) {
+        for (const entry of fs.readdirSync(userDir)) {
+            if (entry.startsWith('avatar')) {
+                fs.unlinkSync(path.join(userDir, entry));
+            }
         }
     }
 
     fs.renameSync(file.path, filePath);
 
-    return getPublicPath(filePath);
+    return {
+        url: getPublicPath(filePath),
+        deleteUrl: null,
+    };
 };
 
 const saveWorkChapter = async (workId, title, content, orderIndex) => {
     const chaptersDir = getWorkChaptersFolder(workId);
-    ensureDir(chaptersDir);
-
     const fileName = `${orderIndex || Date.now()}.md`;
     const filePath = path.join(chaptersDir, fileName);
 
@@ -75,12 +78,12 @@ const saveWorkChapter = async (workId, title, content, orderIndex) => {
     return {
         title,
         content_path: getPublicPath(filePath),
-        order_index: orderIndex || 0
+        order_index: orderIndex || 0,
     };
 };
 
 module.exports = {
     saveWorkImage,
     saveUserAvatar,
-    saveWorkChapter
+    saveWorkChapter,
 };

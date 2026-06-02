@@ -7,13 +7,81 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 const DEFAULT_WEB_KEY = './secrets/fandomia-web-service-account.json';
 
 function normalizePrivateKey(value) {
-    if (!value) return value;
-    return value.replace(/\\n/g, '\n');
+    if (!value) return null;
+
+    let key = String(value).trim();
+
+    if (
+        (key.startsWith('"') && key.endsWith('"'))
+        || (key.startsWith("'") && key.endsWith("'"))
+    ) {
+        key = key.slice(1, -1);
+    }
+
+    key = key.replace(/\\n/g, '\n');
+
+    if (key.includes('-----BEGIN PRIVATE KEY-----') && !key.includes('\n')) {
+        key = key
+            .replace('-----BEGIN PRIVATE KEY-----', '-----BEGIN PRIVATE KEY-----\n')
+            .replace('-----END PRIVATE KEY-----', '\n-----END PRIVATE KEY-----\n');
+    }
+
+    return key;
+}
+
+function readPrivateKeyFromEnv() {
+    if (process.env.FIREBASE_PRIVATE_KEY_BASE64?.trim()) {
+        return normalizePrivateKey(
+            Buffer.from(process.env.FIREBASE_PRIVATE_KEY_BASE64.trim(), 'base64').toString('utf8')
+        );
+    }
+
+    return normalizePrivateKey(process.env.FIREBASE_PRIVATE_KEY);
+}
+
+function getMissingFirebaseEnvVars() {
+    const missing = [];
+
+    if (!process.env.FIREBASE_PROJECT_ID?.trim()) {
+        missing.push('FIREBASE_PROJECT_ID');
+    }
+
+    if (!process.env.FIREBASE_CLIENT_EMAIL?.trim()) {
+        missing.push('FIREBASE_CLIENT_EMAIL');
+    }
+
+    const privateKey = readPrivateKeyFromEnv();
+    if (!privateKey?.includes('BEGIN PRIVATE KEY')) {
+        missing.push('FIREBASE_PRIVATE_KEY (або FIREBASE_PRIVATE_KEY_BASE64)');
+    }
+
+    return missing;
+}
+
+function getFirebaseConfigStatus() {
+    const missing = getMissingFirebaseEnvVars();
+    const hasFile = Boolean(credentialFromFile(false));
+    const hasJson = Boolean(process.env.GOOGLE_CREDENTIALS?.trim());
+
+    return {
+        configured: missing.length === 0 || hasFile || hasJson,
+        source: missing.length === 0
+            ? 'env'
+            : hasFile
+                ? 'file'
+                : hasJson
+                    ? 'google_credentials'
+                    : 'none',
+        missing_env: missing,
+        hint: missing.length > 0
+            ? 'Vercel → Settings → Environment Variables → Production + Preview + Development'
+            : null,
+    };
 }
 
 function credentialFromSplitEnv() {
     const clientEmail = process.env.FIREBASE_CLIENT_EMAIL?.trim();
-    const privateKey = normalizePrivateKey(process.env.FIREBASE_PRIVATE_KEY?.trim());
+    const privateKey = readPrivateKeyFromEnv();
 
     if (!clientEmail || !privateKey) {
         return null;
@@ -45,7 +113,7 @@ function credentialFromSplitEnv() {
 }
 
 function credentialFromJsonEnv() {
-    if (!process.env.GOOGLE_CREDENTIALS) {
+    if (!process.env.GOOGLE_CREDENTIALS?.trim()) {
         return null;
     }
 
@@ -58,7 +126,7 @@ function credentialFromJsonEnv() {
     };
 }
 
-function credentialFromFile() {
+function credentialFromFile(buildCredential = true) {
     let keyPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
 
     if (!keyPath) {
@@ -69,6 +137,10 @@ function credentialFromFile() {
 
     if (!fs.existsSync(keyPath)) {
         return null;
+    }
+
+    if (!buildCredential) {
+        return { projectId: process.env.FIREBASE_PROJECT_ID || 'fandomia-web' };
     }
 
     const serviceAccount = require(keyPath);
@@ -85,22 +157,60 @@ function resolveFirebaseCredential() {
     const fromJson = credentialFromJsonEnv();
     if (fromJson) return fromJson;
 
-    const fromFile = credentialFromFile();
-    if (fromFile) return fromFile;
+    const fromFile = credentialFromFile(true);
+    if (fromFile?.credential) return fromFile;
 
+    const missing = getMissingFirebaseEnvVars();
     throw new Error(
-        'Firebase Admin не налаштовано. На Vercel задай окремі змінні:\n'
-        + 'FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY\n'
-        + 'Локально можна FIREBASE_SERVICE_ACCOUNT_PATH=./secrets/....json'
+        'Firebase Admin не налаштовано.\n'
+        + `Відсутні змінні: ${missing.join(', ') || 'невідомо'}\n`
+        + 'Vercel → Project → Settings → Environment Variables:\n'
+        + '  FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY\n'
+        + 'Або FIREBASE_PRIVATE_KEY_BASE64 (base64 від private_key — без проблем з \\n)\n'
+        + 'Увімкни для Production, Preview і Development, потім Redeploy.'
     );
 }
 
-if (!admin.apps.length) {
+function ensureInitialized() {
+    if (admin.apps.length) return admin;
+
     const { credential, projectId } = resolveFirebaseCredential();
     admin.initializeApp({
         credential,
         projectId: process.env.FIREBASE_PROJECT_ID || projectId || 'fandomia-web',
     });
+
+    return admin;
 }
 
-module.exports = admin;
+function getAuth() {
+    return ensureInitialized().auth();
+}
+
+const firebaseAdmin = new Proxy(admin, {
+    get(target, prop) {
+        if (prop === 'auth') {
+            return () => getAuth();
+        }
+
+        if (prop === 'ensureInitialized') {
+            return ensureInitialized;
+        }
+
+        if (prop === 'getAuth') {
+            return getAuth;
+        }
+
+        if (prop === 'getFirebaseConfigStatus') {
+            return getFirebaseConfigStatus;
+        }
+
+        const value = target[prop];
+        return typeof value === 'function' ? value.bind(target) : value;
+    },
+});
+
+module.exports = firebaseAdmin;
+module.exports.ensureInitialized = ensureInitialized;
+module.exports.getAuth = getAuth;
+module.exports.getFirebaseConfigStatus = getFirebaseConfigStatus;

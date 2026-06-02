@@ -1,21 +1,19 @@
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
-
-const tempDir = path.resolve(__dirname, '..', '..', 'uploads', 'temp');
-
-if (!fs.existsSync(tempDir)) {
-    fs.mkdirSync(tempDir, { recursive: true });
-}
+const { getTempUploadDir } = require('../utils/uploadPaths');
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, tempDir);
+        try {
+            cb(null, getTempUploadDir());
+        } catch (err) {
+            cb(err);
+        }
     },
     filename: (req, file, cb) => {
         const ext = path.extname(file.originalname);
         cb(null, `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`);
-    }
+    },
 });
 
 const imageFilter = (req, file, cb) => {
@@ -30,10 +28,10 @@ const uploadImages = multer({
     storage,
     fileFilter: imageFilter,
     limits: {
-        fileSize: 5 * 1024 * 1024
-    }
+        fileSize: 5 * 1024 * 1024,
+    },
 });
 
 module.exports = {
-    uploadImages
+    uploadImages,
 };

@@ -1,7 +1,10 @@
+const fs = require('fs');
+const path = require('path');
 const userRepository = require('../repositories/userRepository');
 const { USER_ROLES, createUserEntity } = require('../models/userModel');
 
 const fileUploadService = require('./fileUploadService');
+const imgbbService = require('./imgbbService');
 
 const DEFAULT_AVATAR = '/images/users/default_avatar.png';
 
@@ -163,12 +166,22 @@ const uploadUserAvatar = async (userId, file, user) => {
         throw new Error('Файл аватара не передано');
     }
 
-    const avatarPath = await fileUploadService.saveUserAvatar(userId, file);
+    const uploaded = await fileUploadService.saveUserAvatar(userId, file);
+
+    if (existing.avatar_delete_url) {
+        await imgbbService.deleteByUrl(existing.avatar_delete_url);
+    } else if (imgbbService.isLocalUploadPath(existing.avatar_url)) {
+        const localPath = path.resolve(__dirname, '..', '..', String(existing.avatar_url).replace(/^\/+/, ''));
+        if (fs.existsSync(localPath)) {
+            fs.unlinkSync(localPath);
+        }
+    }
 
     await userRepository.updateUser(userId, {
         email: existing.email,
         name: existing.name,
-        avatar_url: avatarPath,
+        avatar_url: uploaded.url,
+        avatar_delete_url: uploaded.deleteUrl,
     });
 
     return await getUserById(userId);

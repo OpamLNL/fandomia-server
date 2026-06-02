@@ -1,4 +1,7 @@
-const swaggerOptions = {
+const path = require('path');
+
+module.exports = function getSwaggerOptions(baseUrl = 'http://localhost:3000') {
+    return {
     swaggerDefinition: {
         openapi: '3.0.0',
         info: {
@@ -7,7 +10,8 @@ const swaggerOptions = {
             description: 'API соціальної платформи для фанатської творчості'
         },
         servers: [
-            { url: 'http://localhost:3000' }
+            { url: baseUrl, description: 'Поточний сервер (production / preview)' },
+            { url: 'http://localhost:3000', description: 'Локальна розробка' },
         ],
         components: {
             securitySchemes: {
@@ -154,6 +158,52 @@ const swaggerOptions = {
             }
         },
         paths: {
+            '/': {
+                get: {
+                    tags: ['Health'],
+                    summary: 'Вітання — перевірка, що сервер працює',
+                    description: 'Публічний endpoint без авторизації. Не потребує підключення до БД.',
+                    responses: {
+                        200: {
+                            description: 'Сервер працює',
+                            content: {
+                                'application/json': {
+                                    schema: {
+                                        type: 'object',
+                                        properties: {
+                                            name: { type: 'string', example: 'Fandomia API' },
+                                            message: { type: 'string', example: 'Вітаємо! Сервер Фандомії працює.' },
+                                            version: { type: 'string', example: '1.0.0' },
+                                            status: { type: 'string', example: 'ok' },
+                                            docs: { type: 'string', example: '/api/docs' },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+            '/api': {
+                get: {
+                    tags: ['Health'],
+                    summary: 'Вітання API',
+                    description: 'Те саме, що GET / — зручно для перевірки базового шляху /api',
+                    responses: { 200: { description: 'Сервер працює' } },
+                },
+            },
+            '/api/health': {
+                get: {
+                    tags: ['Health'],
+                    summary: 'Health check (сервер + БД)',
+                    description: 'Перевіряє доступність MySQL. 200 — все ок, 503 — БД недоступна.',
+                    responses: {
+                        200: { description: 'Сервер і БД працюють' },
+                        503: { description: 'Сервер працює, БД недоступна' },
+                    },
+                },
+            },
+
             '/api/users': {
                 get: {
                     tags: ['Users'],
@@ -922,7 +972,6 @@ const swaggerOptions = {
             }
         }
     },
-    apis: ['./src/routes/*.js']
+    apis: [path.join(__dirname, '..', 'routes', '*.js')],
+    };
 };
-
-module.exports = swaggerOptions;

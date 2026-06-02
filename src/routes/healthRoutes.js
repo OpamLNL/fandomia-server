@@ -50,6 +50,28 @@ router.get('/api/health', async (req, res) => {
         payload.database_error = err.message;
     }
 
+    try {
+        const { getFirebaseConfigStatus } = require('../../firebase-admin');
+        payload.firebase = getFirebaseConfigStatus();
+        if (!payload.firebase.configured && payload.status === 'ok') {
+            payload.status = 'degraded';
+        }
+    } catch (err) {
+        payload.firebase = { configured: false, error: err.message };
+    }
+
+    try {
+        const imgbbService = require('../services/imgbbService');
+        payload.imgbb = {
+            configured: imgbbService.isConfigured(),
+            hint: imgbbService.isConfigured()
+                ? null
+                : 'Додай IMGBB_API_KEY для збереження зображень на Vercel',
+        };
+    } catch (err) {
+        payload.imgbb = { configured: false, error: err.message };
+    }
+
     res.status(payload.status === 'ok' ? 200 : 503).json(payload);
 });
 

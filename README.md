@@ -44,6 +44,7 @@ node ./src/server.js
 | GET | `/api/docs` | Swagger UI |
 | GET | `/api/docs/swagger.json` | OpenAPI spec (JSON) |
 | POST | `/routes/auth/firebase` | Синхронізація користувача після Firebase login |
+| — | ImgBB | Зображення (аватари, арт) — `IMGBB_API_KEY` |
 | GET | `/api/works?page&limit&type&sort` | Список творів (пагінація) |
 | GET | `/api/works/search?query&page&limit&type` | Пошук творів |
 | GET | `/api/posts?page&limit` | Список постів (пагінація) |

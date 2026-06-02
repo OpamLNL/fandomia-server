@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs');
 const express = require('express');
 const morgan = require('morgan');
 
@@ -74,8 +75,11 @@ function createApp() {
     const imagesPath = path.resolve(__dirname, '..', 'public', 'images');
     app.use('/images', express.static(imagesPath));
 
-    const uploadsPath = path.resolve(__dirname, '..', 'uploads');
-    app.use('/uploads', express.static(uploadsPath));
+    const { getUploadsRoot, isServerlessUploads } = require('./utils/uploadPaths');
+    const uploadsPath = getUploadsRoot();
+    if (!isServerlessUploads() || fs.existsSync(uploadsPath)) {
+        app.use('/uploads', express.static(uploadsPath));
+    }
 
     app.use(handleRequest);
     app.use('/routes/auth', authRoutes);
