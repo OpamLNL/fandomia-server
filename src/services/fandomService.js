@@ -1,10 +1,23 @@
 const fandomRepository = require('../repositories/fandomRepository');
+const fandomCatalogTagRepository = require('../repositories/fandomCatalogTagRepository');
 const workService = require('./workService');
 const postService = require('./postService');
 const fileUploadService = require('./fileUploadService');
+const fandomCatalogTagService = require('./fandomCatalogTagService');
 
-const getAllFandoms = async () => {
-    return await fandomRepository.getAllFandoms();
+const parseCatalogTagId = (value) => {
+    if (value === null || value === undefined || value === '' || value === 'all') {
+        return null;
+    }
+
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+};
+
+const getAllFandoms = async (query = {}) => {
+    const catalogTagId = parseCatalogTagId(query.catalog_tag_id);
+    const fandoms = await fandomRepository.getAllFandoms(catalogTagId);
+    return await fandomCatalogTagService.attachCatalogTags(fandoms);
 };
 
 const getFandomById = async (id) => {
@@ -14,15 +27,26 @@ const getFandomById = async (id) => {
         throw new Error('Фандом не знайдено');
     }
 
-    return fandom;
+    return await fandomCatalogTagService.attachCatalogTags(fandom);
 };
 
-const searchFandomsByName = async (name) => {
+const searchFandomsByName = async (name, query = {}) => {
+    const catalogTagId = parseCatalogTagId(query.catalog_tag_id);
+    let fandoms;
+
     if (!name || !name.trim()) {
-        return await fandomRepository.getAllFandoms();
+        fandoms = await fandomRepository.getAllFandoms(catalogTagId);
+    } else {
+        fandoms = await fandomRepository.searchFandomsByName(name.trim());
+        if (catalogTagId) {
+            const allowed = new Set(
+                (await fandomCatalogTagRepository.getFandomsByCatalogTagId(catalogTagId)).map((f) => f.id)
+            );
+            fandoms = fandoms.filter((f) => allowed.has(f.id));
+        }
     }
 
-    return await fandomRepository.searchFandomsByName(name.trim());
+    return await fandomCatalogTagService.attachCatalogTags(fandoms);
 };
 
 const getWorksByFandomId = async (fandomId, viewer = {}) => {
@@ -70,11 +94,18 @@ const createFandom = async (data) => {
         throw new Error('Назва фандому обовʼязкова');
     }
 
-    return await fandomRepository.createFandom({
+    const created = await fandomRepository.createFandom({
         name: data.name.trim(),
         description: data.description || null,
         cover_image: data.cover_image || null
     });
+
+    if (Array.isArray(data.catalog_tag_ids)) {
+        const tagIds = await fandomCatalogTagService.normalizeTagIds(data.catalog_tag_ids);
+        await fandomCatalogTagRepository.setFandomCatalogTags(created.id, tagIds);
+    }
+
+    return await getFandomById(created.id);
 };
 
 const updateFandom = async (id, data) => {
@@ -88,11 +119,18 @@ const updateFandom = async (id, data) => {
         throw new Error('Назва фандому обовʼязкова');
     }
 
-    return await fandomRepository.updateFandom(id, {
+    await fandomRepository.updateFandom(id, {
         name: data.name.trim(),
         description: data.description || null,
         cover_image: data.cover_image || null
     });
+
+    if (Array.isArray(data.catalog_tag_ids)) {
+        const tagIds = await fandomCatalogTagService.normalizeTagIds(data.catalog_tag_ids);
+        await fandomCatalogTagRepository.setFandomCatalogTags(id, tagIds);
+    }
+
+    return await getFandomById(id);
 };
 
 const deleteFandom = async (id) => {
@@ -118,11 +156,13 @@ const uploadFandomCover = async (id, file) => {
 
     const uploaded = await fileUploadService.saveFandomCover(id, file);
 
-    return await fandomRepository.updateFandom(id, {
+    await fandomRepository.updateFandom(id, {
         name: existing.name,
         description: existing.description,
         cover_image: uploaded.url,
     });
+
+    return await getFandomById(id);
 };
 
 module.exports = {

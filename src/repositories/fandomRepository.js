@@ -1,7 +1,17 @@
 const { query } = require('../config/database');
 const { matureOnlySql } = require('../utils/contentRating');
 
-const getAllFandoms = async () => {
+const getAllFandoms = async (catalogTagId = null) => {
+    if (catalogTagId) {
+        return await query(`
+            SELECT f.*
+            FROM fandoms f
+            JOIN fandom_catalog_tag_links l ON f.id = l.fandom_id
+            WHERE l.catalog_tag_id = ?
+            ORDER BY f.name ASC
+        `, [catalogTagId]);
+    }
+
     return await query(`
         SELECT *
         FROM fandoms

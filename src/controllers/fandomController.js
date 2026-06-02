@@ -3,7 +3,7 @@ const { getViewerContext } = require('../utils/contentRating');
 
 const getAllFandoms = async (req, res) => {
     try {
-        const fandoms = await fandomService.getAllFandoms();
+        const fandoms = await fandomService.getAllFandoms(req.query);
         res.json(fandoms);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -21,7 +21,7 @@ const getFandomById = async (req, res) => {
 
 const searchFandomsByName = async (req, res) => {
     try {
-        const fandoms = await fandomService.searchFandomsByName(req.query.name);
+        const fandoms = await fandomService.searchFandomsByName(req.query.name, req.query);
         res.json(fandoms);
     } catch (error) {
         res.status(500).json({ error: error.message });
