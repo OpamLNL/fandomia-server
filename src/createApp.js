@@ -8,6 +8,7 @@ const authRoutes = require('./routes/auth');
 const healthRoutes = require('./routes/healthRoutes');
 const { setupSwagger } = require('./swagger');
 const { checkAndInitDatabase } = require('./migrations/db-checker');
+const { createCorsMiddleware, applyCorsHeaders } = require('./corsConfig');
 
 let dbInitPromise = null;
 
@@ -21,40 +22,10 @@ function ensureDatabaseReady() {
     return dbInitPromise;
 }
 
-function parseAllowedOrigins() {
-    const defaults = ['http://localhost:3000', 'http://localhost:5173'];
-    const fromEnv = (process.env.ALLOWED_ORIGINS || '')
-        .split(',')
-        .map((item) => item.trim())
-        .filter(Boolean);
-
-    if (process.env.VERCEL_URL) {
-        fromEnv.push(`https://${process.env.VERCEL_URL}`);
-    }
-
-    if (process.env.FRONTEND_URL) {
-        fromEnv.push(process.env.FRONTEND_URL.trim());
-    }
-
-    return [...new Set([...defaults, ...fromEnv])];
-}
-
 function createApp() {
     const app = express();
-    const allowedOrigins = parseAllowedOrigins();
 
-    app.use((req, res, next) => {
-        const origin = req.headers.origin;
-        if (origin && allowedOrigins.includes(origin)) {
-            res.setHeader('Access-Control-Allow-Origin', origin);
-        }
-        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-        if (req.method === 'OPTIONS') {
-            return res.sendStatus(200);
-        }
-        next();
-    });
+    app.use(createCorsMiddleware());
 
     app.use(express.json());
     app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
@@ -86,6 +57,7 @@ function createApp() {
     app.use((err, req, res, next) => {
         if (res.headersSent) return next(err);
         console.error(err);
+        applyCorsHeaders(req, res);
 
         if (req.path.startsWith('/api/') || req.path.startsWith('/routes/')) {
             return res.status(err.status || 500).json({ error: err.message || 'Помилка сервера' });
