@@ -12,7 +12,7 @@ function sendContentError(res, error) {
 }
 
 const getAllPosts = async (req, res) => {
-    const posts = await postService.getAllPosts(getViewerContext(req));
+    const posts = await postService.getAllPosts(req.query, getViewerContext(req));
     res.json(posts);
 };
 
@@ -49,7 +49,7 @@ const getPostsByTagId = async (req, res) => {
 };
 
 const searchPosts = async (req, res) => {
-    const posts = await postService.searchPosts(req.query.query, getViewerContext(req));
+    const posts = await postService.searchPosts(req.query.query, req.query, getViewerContext(req));
     res.json(posts);
 };
 

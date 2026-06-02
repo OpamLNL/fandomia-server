@@ -81,9 +81,6 @@ const createUser = async (req, res) => {
     res.status(201).json(user);
 };
 
-const createUserAndAuthenticate = async (req, res) => {
-    await userService.createUserAndAuthenticate(req, res);
-};
 
 const updateUser = async (req, res) => {
     const user = await userService.updateUser(req.params.id, req.body);
@@ -137,7 +134,6 @@ module.exports = {
     getMyComments,
     getMyReceivedComments,
     createUser,
-    createUserAndAuthenticate,
     updateUser,
     updateMe,
     uploadAvatar,

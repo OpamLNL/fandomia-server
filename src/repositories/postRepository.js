@@ -1,7 +1,9 @@
 const { query } = require('../config/database');
 const { matureOnlySql } = require('../utils/contentRating');
 
-const getAllPosts = async (showMature = false) => {
+const getAllPosts = async (limit = 10, offset = 0, showMature = false, sort = 'desc') => {
+    const order = sort === 'asc' ? 'ASC' : 'DESC';
+
     return await query(`
         SELECT
             p.*,
@@ -12,8 +14,19 @@ const getAllPosts = async (showMature = false) => {
                  LEFT JOIN users u ON p.user_id = u.id
                  LEFT JOIN fandoms f ON p.fandom_id = f.id
         WHERE p.status = 'active'${matureOnlySql('p', showMature)}
-        ORDER BY p.created_at DESC
+        ORDER BY p.created_at ${order}
+        LIMIT ? OFFSET ?
+    `, [limit, offset]);
+};
+
+const countPosts = async (showMature = false) => {
+    const rows = await query(`
+        SELECT COUNT(*) AS count
+        FROM posts p
+        WHERE p.status = 'active'${matureOnlySql('p', showMature)}
     `);
+
+    return rows[0].count;
 };
 
 const getPostById = async (id) => {
@@ -71,7 +84,9 @@ const getPostsByType = async (type, showMature = false) => {
     `, [type]);
 };
 
-const searchPosts = async (searchQuery, showMature = false) => {
+const searchPosts = async (searchQuery, limit = 10, offset = 0, showMature = false, sort = 'desc') => {
+    const order = sort === 'asc' ? 'ASC' : 'DESC';
+
     return await query(`
         SELECT
             p.*,
@@ -82,8 +97,20 @@ const searchPosts = async (searchQuery, showMature = false) => {
                  LEFT JOIN fandoms f ON p.fandom_id = f.id
         WHERE p.status = 'active'${matureOnlySql('p', showMature)}
           AND (p.title LIKE ? OR p.content LIKE ?)
-        ORDER BY p.created_at DESC
+        ORDER BY p.created_at ${order}
+        LIMIT ? OFFSET ?
+    `, [`%${searchQuery}%`, `%${searchQuery}%`, limit, offset]);
+};
+
+const countSearchPosts = async (searchQuery, showMature = false) => {
+    const rows = await query(`
+        SELECT COUNT(*) AS count
+        FROM posts p
+        WHERE p.status = 'active'${matureOnlySql('p', showMature)}
+          AND (p.title LIKE ? OR p.content LIKE ?)
     `, [`%${searchQuery}%`, `%${searchQuery}%`]);
+
+    return rows[0].count;
 };
 
 const getPostsByTagId = async (tagId, showMature = false) => {
@@ -190,12 +217,14 @@ const deletePost = async (id) => {
 
 module.exports = {
     getAllPosts,
+    countPosts,
     getPostById,
     getPostsByUserId,
     getPostsByFandomId,
     getPostsByType,
     getPostsByTagId,
     searchPosts,
+    countSearchPosts,
     getLatestPosts,
     getPostTags,
     addPostTag,

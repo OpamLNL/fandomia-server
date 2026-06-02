@@ -29,9 +29,11 @@ const enrichWorks = async (works) => {
 const getAllWorks = async (query = {}, viewer = {}) => {
     const { page, limit, offset } = getPagination(query);
     const showMature = Boolean(viewer.showMature);
+    const type = query.type && query.type !== 'all' ? query.type : null;
+    const sort = query.sort === 'asc' ? 'asc' : 'desc';
 
-    const works = await workRepository.getAllWorks(limit, offset, showMature);
-    const total = await workRepository.countWorks(showMature);
+    const works = await workRepository.getAllWorks(limit, offset, showMature, type, sort);
+    const total = await workRepository.countWorks(showMature, type);
 
     const enriched = await enrichWorks(works);
 
@@ -74,13 +76,27 @@ const getWorksByType = async (type, viewer = {}) => {
     return await enrichWorks(works);
 };
 
-const searchWorks = async (searchQuery, viewer = {}) => {
+const searchWorks = async (searchQuery, query = {}, viewer = {}) => {
     if (!searchQuery || !searchQuery.trim()) {
-        return await getAllWorks({}, viewer);
+        return await getAllWorks(query, viewer);
     }
 
-    const works = await workRepository.searchWorks(searchQuery.trim(), Boolean(viewer.showMature));
-    return await enrichWorks(works);
+    const { page, limit, offset } = getPagination(query);
+    const showMature = Boolean(viewer.showMature);
+    const type = query.type && query.type !== 'all' ? query.type : null;
+    const sort = query.sort === 'asc' ? 'asc' : 'desc';
+    const trimmed = searchQuery.trim();
+
+    const works = await workRepository.searchWorks(trimmed, limit, offset, showMature, type, sort);
+    const total = await workRepository.countSearchWorks(trimmed, showMature, type);
+    const enriched = await enrichWorks(works);
+
+    return buildPaginationResponse({
+        data: enriched,
+        total,
+        page,
+        limit,
+    });
 };
 
 const getWorksByTagId = async (tagId, viewer = {}) => {

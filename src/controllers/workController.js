@@ -49,7 +49,7 @@ const getWorksByTagId = async (req, res) => {
 };
 
 const searchWorks = async (req, res) => {
-    const works = await workService.searchWorks(req.query.query, getViewerContext(req));
+    const works = await workService.searchWorks(req.query.query, req.query, getViewerContext(req));
     res.json(works);
 };
 

@@ -5,6 +5,7 @@ const init = require('./init-db');
 const { ensureFollowsSchema } = require('./add-follows');
 const { ensureNotificationsSchema } = require('./add-notifications');
 const { ensureContentRatingSchema } = require('./add-content-rating');
+const { ensureContactMessagesSchema } = require('./add-contact-messages');
 
 const REQUIRED_TABLES = [
     'users',
@@ -40,6 +41,7 @@ async function checkAndInitDatabase() {
         await ensureFollowsSchema();
         await ensureNotificationsSchema();
         await ensureContentRatingSchema();
+        await ensureContactMessagesSchema();
     } catch (err) {
         console.error('❌ DB CHECK ERROR:', err);
         throw err;

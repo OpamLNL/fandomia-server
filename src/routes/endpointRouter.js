@@ -15,6 +15,7 @@ const notificationRoutes = require('./notificationRoutes');
 const reportRoutes = require('./reportRoutes');
 const adminRoutes = require('./adminRoutes');
 const workUploadRoutes = require('./workUploadRoutes');
+const contactRoutes = require('./contactRoutes');
 
 
 
@@ -31,6 +32,7 @@ router.use('/api/notifications', notificationRoutes);
 router.use('/api/reports', reportRoutes);
 router.use('/api/admin', adminRoutes);
 router.use('/api/work-upload', workUploadRoutes);
+router.use('/api/contact', contactRoutes);
 
 
 module.exports = router;

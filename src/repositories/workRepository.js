@@ -1,7 +1,11 @@
 const { query } = require('../config/database');
 const { matureOnlySql } = require('../utils/contentRating');
 
-const getAllWorks = async (limit = 10, offset = 0, showMature = false) => {
+const getAllWorks = async (limit = 10, offset = 0, showMature = false, type = null, sort = 'desc') => {
+    const order = sort === 'asc' ? 'ASC' : 'DESC';
+    const typeClause = type ? ' AND w.type = ?' : '';
+    const params = type ? [type, limit, offset] : [limit, offset];
+
     return await query(`
         SELECT
             w.*,
@@ -11,18 +15,21 @@ const getAllWorks = async (limit = 10, offset = 0, showMature = false) => {
         FROM works w
                  LEFT JOIN users u ON w.user_id = u.id
                  LEFT JOIN fandoms f ON w.fandom_id = f.id
-        WHERE w.status = 'active'${matureOnlySql('w', showMature)}
-        ORDER BY w.created_at DESC
+        WHERE w.status = 'active'${matureOnlySql('w', showMature)}${typeClause}
+        ORDER BY w.created_at ${order}
             LIMIT ? OFFSET ?
-    `, [limit, offset]);
+    `, params);
 };
 
-const countWorks = async (showMature = false) => {
+const countWorks = async (showMature = false, type = null) => {
+    const typeClause = type ? ' AND w.type = ?' : '';
+    const params = type ? [type] : [];
+
     const rows = await query(`
         SELECT COUNT(*) AS count
         FROM works w
-        WHERE w.status = 'active'${matureOnlySql('w', showMature)}
-    `);
+        WHERE w.status = 'active'${matureOnlySql('w', showMature)}${typeClause}
+    `, params);
 
     return rows[0].count;
 };
@@ -82,19 +89,43 @@ const getWorksByType = async (type, showMature = false) => {
     `, [type]);
 };
 
-const searchWorks = async (searchQuery, showMature = false) => {
+const searchWorks = async (searchQuery, limit = 10, offset = 0, showMature = false, type = null, sort = 'desc') => {
+    const order = sort === 'asc' ? 'ASC' : 'DESC';
+    const typeClause = type ? ' AND w.type = ?' : '';
+    const params = type
+        ? [`%${searchQuery}%`, `%${searchQuery}%`, type, limit, offset]
+        : [`%${searchQuery}%`, `%${searchQuery}%`, limit, offset];
+
     return await query(`
         SELECT
             w.*,
             u.name AS author_name,
+            u.avatar_url AS author_avatar,
             f.name AS fandom_name
         FROM works w
                  LEFT JOIN users u ON w.user_id = u.id
                  LEFT JOIN fandoms f ON w.fandom_id = f.id
-        WHERE w.status = 'active'${matureOnlySql('w', showMature)}
+        WHERE w.status = 'active'${matureOnlySql('w', showMature)}${typeClause}
           AND (w.title LIKE ? OR w.description LIKE ?)
-        ORDER BY w.created_at DESC
-    `, [`%${searchQuery}%`, `%${searchQuery}%`]);
+        ORDER BY w.created_at ${order}
+        LIMIT ? OFFSET ?
+    `, params);
+};
+
+const countSearchWorks = async (searchQuery, showMature = false, type = null) => {
+    const typeClause = type ? ' AND w.type = ?' : '';
+    const params = type
+        ? [`%${searchQuery}%`, `%${searchQuery}%`, type]
+        : [`%${searchQuery}%`, `%${searchQuery}%`];
+
+    const rows = await query(`
+        SELECT COUNT(*) AS count
+        FROM works w
+        WHERE w.status = 'active'${matureOnlySql('w', showMature)}${typeClause}
+          AND (w.title LIKE ? OR w.description LIKE ?)
+    `, params);
+
+    return rows[0].count;
 };
 
 const getWorksByTagId = async (tagId, showMature = false) => {
@@ -225,6 +256,7 @@ module.exports = {
     getWorksByFandomId,
     getWorksByType,
     searchWorks,
+    countSearchWorks,
     getWorksByTagId,
     getWorkImages,
     getWorkTags,

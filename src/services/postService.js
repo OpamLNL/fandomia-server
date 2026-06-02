@@ -1,5 +1,6 @@
 const postRepository = require('../repositories/postRepository');
 const { POST_TYPES, createPostEntity } = require('../models/postModel');
+const { getPagination, buildPaginationResponse } = require('../utils/pagination');
 const { normalizeContentRating, assertCanViewContent } = require('../utils/contentRating');
 
 const enrichPost = async (post) => {
@@ -23,9 +24,21 @@ const enrichPosts = async (posts) => {
     return result;
 };
 
-const getAllPosts = async (viewer = {}) => {
-    const posts = await postRepository.getAllPosts(Boolean(viewer.showMature));
-    return await enrichPosts(posts);
+const getAllPosts = async (query = {}, viewer = {}) => {
+    const { page, limit, offset } = getPagination(query);
+    const showMature = Boolean(viewer.showMature);
+    const sort = query.sort === 'asc' ? 'asc' : 'desc';
+
+    const posts = await postRepository.getAllPosts(limit, offset, showMature, sort);
+    const total = await postRepository.countPosts(showMature);
+    const enriched = await enrichPosts(posts);
+
+    return buildPaginationResponse({
+        data: enriched,
+        total,
+        page,
+        limit,
+    });
 };
 
 const getPostById = async (id, viewer = {}) => {
@@ -64,13 +77,26 @@ const getPostsByTagId = async (tagId, viewer = {}) => {
     return await enrichPosts(posts);
 };
 
-const searchPosts = async (searchQuery, viewer = {}) => {
+const searchPosts = async (searchQuery, query = {}, viewer = {}) => {
     if (!searchQuery || !searchQuery.trim()) {
-        return await getAllPosts(viewer);
+        return await getAllPosts(query, viewer);
     }
 
-    const posts = await postRepository.searchPosts(searchQuery.trim(), Boolean(viewer.showMature));
-    return await enrichPosts(posts);
+    const { page, limit, offset } = getPagination(query);
+    const showMature = Boolean(viewer.showMature);
+    const sort = query.sort === 'asc' ? 'asc' : 'desc';
+    const trimmed = searchQuery.trim();
+
+    const posts = await postRepository.searchPosts(trimmed, limit, offset, showMature, sort);
+    const total = await postRepository.countSearchPosts(trimmed, showMature);
+    const enriched = await enrichPosts(posts);
+
+    return buildPaginationResponse({
+        data: enriched,
+        total,
+        page,
+        limit,
+    });
 };
 
 const getLatestPosts = async (limit, viewer = {}) => {

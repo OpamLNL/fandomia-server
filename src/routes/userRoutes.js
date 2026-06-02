@@ -61,9 +61,8 @@ router.get('/:id/stats', asyncHandler(userController.getUserStats));
 router.get('/', asyncHandler(userController.getAllUsers));
 router.get('/:id', asyncHandler(userController.getUserById));
 
-// create/auth
+// create
 router.post('/', asyncHandler(userController.createUser));
-router.post('/auth', asyncHandler(userController.createUserAndAuthenticate));
 
 // update profile: сам користувач / модератор / адмін
 router.put(

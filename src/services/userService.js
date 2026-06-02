@@ -1,5 +1,4 @@
 const userRepository = require('../repositories/userRepository');
-const { generateTokens } = require('../services/authService');
 const { USER_ROLES, createUserEntity } = require('../models/userModel');
 
 const fileUploadService = require('./fileUploadService');
@@ -134,30 +133,6 @@ const createUser = async ({ firebase_uid, email, name, avatar_url, role }) => {
     return createUserEntity(user);
 };
 
-const createUserAndAuthenticate = async (req, res) => {
-    try {
-        const { firebase_uid, email, name, avatar_url } = req.body;
-
-        const user = await createUser({
-            firebase_uid,
-            email,
-            name,
-            avatar_url,
-            role: USER_ROLES.USER
-        });
-
-        const { accessToken, refreshToken } = generateTokens(user.id);
-
-        res.status(201).json({
-            user,
-            accessToken,
-            refreshToken
-        });
-    } catch (error) {
-        console.error('Помилка створення користувача:', error);
-        res.status(500).json({ error: error.message });
-    }
-};
 
 const updateUser = async (userId, userData) => {
     const existing = await userRepository.getUserById(userId);
@@ -246,7 +221,6 @@ module.exports = {
     getUserStats,
     getPopularAuthors,
     createUser,
-    createUserAndAuthenticate,
     updateUser,
     uploadUserAvatar,
     updateUserRole,

@@ -54,10 +54,6 @@ app.use((req, res, next) => {
 app.use(handleRequest);
 app.use('/routes/auth', authRoutes);
 
-const workRoutes = require('./routes/workRoutes');
-app.use('/api/works', workRoutes);
-
-
 ///////////////// test
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
