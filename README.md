@@ -39,6 +39,10 @@ node ./src/server.js
 
 | Метод | Шлях | Опис |
 |-------|------|------|
+| GET | `/` або `/api` | Вітання — перевірка, що сервер працює (публічно, без БД) |
+| GET | `/api/health` | Health check сервера та MySQL |
+| GET | `/api/docs` | Swagger UI |
+| GET | `/api/docs/swagger.json` | OpenAPI spec (JSON) |
 | POST | `/routes/auth/firebase` | Синхронізація користувача після Firebase login |
 | GET | `/api/works?page&limit&type&sort` | Список творів (пагінація) |
 | GET | `/api/works/search?query&page&limit&type` | Пошук творів |
@@ -69,4 +73,5 @@ src/
   middlewares/
 ```
 
-Демо-сценарій і чеклист тестування — [DEMO.md](../DEMO.md).
+Демо-сценарій і чеклист тестування — [DEMO.md](../DEMO.md).  
+**Деплой на Vercel** — [DEPLOY.md](../DEPLOY.md).

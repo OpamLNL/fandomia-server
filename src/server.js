@@ -1,112 +1,21 @@
-require('dotenv').config({ path: '../.env' });
-
-const express = require('express');
-const app = express();
-const http = require('http');
 const path = require('path');
-const morgan = require('morgan');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
-const handleRequest = require('./routes/endpointRouter');
-const authRoutes = require('./routes/auth');
+const http = require('http');
+const { createApp } = require('./src/app');
+const { closePool } = require('./src/config/database');
 
-const { closePool } = require('./config/database');
-const { checkAndInitDatabase } = require('./migrations/db-checker');
-
-// CORS
-const allowedOrigins = [
-    'http://localhost:3000',
-    'http://localhost:5173',
-
-];
-
-app.use((req, res, next) => {
-    const origin = req.headers.origin;
-    if (allowedOrigins.includes(origin)) {
-        res.setHeader('Access-Control-Allow-Origin', origin);
-    }
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    if (req.method === 'OPTIONS') {
-        return res.sendStatus(200);
-    }
-    next();
-});
-
-// images
-const imagesPath = path.resolve(__dirname, '..', 'public', 'images');
-app.use('/images', express.static(imagesPath));
-
-
-const uploadsPath = path.resolve(__dirname, '..', 'uploads');
-app.use('/uploads', express.static(uploadsPath));
-
-
-// middleware
-app.use(express.json());
-app.use(morgan('combined'));
-
-app.use((req, res, next) => {
-    console.log(`${req.method} ${req.url}`);
-    next();
-});
-
-// routes
-app.use(handleRequest);
-app.use('/routes/auth', authRoutes);
-
-///////////////// test
-const swaggerUi = require('swagger-ui-express');
-const swaggerJsdoc = require('swagger-jsdoc');
-
-const swaggerOptions = require('./swagger/swaggerOptions');
-
-const swaggerSpec = swaggerJsdoc(swaggerOptions);
-
-app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
-// errors
-app.use((err, req, res, next) => {
-    if (res.headersSent) return next(err);
-    console.error(err);
-
-    if (req.path.startsWith('/api/')) {
-        return res.status(err.status || 500).json({ error: err.message || 'Помилка сервера' });
-    }
-
-    if (err.status === 401) {
-        return res.status(401).sendFile(path.join(__dirname, '..', 'public', '404.html'));
-    }
-
-    next(err);
-});
-
-
-app.use((req, res) => {
-    res.status(404).sendFile(path.join(__dirname, '..', 'public', '404.html'));
-});
-
-
-
-
-
-
-// start
-const PORT = process.env.PORT;
-const ipAddress = process.env.DB_IP;
+const app = createApp();
+const PORT = process.env.PORT || 3000;
+const ipAddress = process.env.DB_IP || '0.0.0.0';
 const server = http.createServer(app);
 
-(async () => {
-    // лише перевірка: створить відсутні таблиці, дані не чіпає
-    await checkAndInitDatabase();
+server.listen(PORT, ipAddress, () => {
+    console.log('===================================================');
+    console.log(`======== Fandomia Server is running on port:${PORT}`);
+    console.log('===================================================');
+});
 
-    server.listen(PORT, ipAddress, () => {
-        console.log(`===================================================`);
-        console.log(`======== Fandomia Server is running on port:${PORT}`);
-        console.log(`===================================================`);
-    });
-})();
-
-// shutdown
 process.on('SIGINT', async () => {
     try {
         await closePool();

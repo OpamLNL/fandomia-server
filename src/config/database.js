@@ -1,78 +1,57 @@
 const mysql = require('mysql2/promise');
-require('dotenv').config();
 const fs = require('fs');
+const path = require('path');
 
-console.log("Initializing connection pool...");
-console.log(`Host: ${process.env.DB_HOST}, Database: ${process.env.DB_DATABASE}`);
+require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 
-// ЧИТАЄМО CA ФАЙЛ ПРАВИЛЬНО
-const caCert = fs.readFileSync(process.env.DB_SSL_CA);
+function readSslCa() {
+    const raw = process.env.DB_SSL_CA?.trim();
+    if (!raw) return null;
 
-// Створення пулу з'єднань
-const pool = mysql.createPool({
+    if (raw.includes('-----BEGIN')) {
+        return raw.replace(/\\n/g, '\n');
+    }
+
+    const projectRoot = path.resolve(__dirname, '..', '..');
+    const certPath = path.isAbsolute(raw) ? raw : path.resolve(projectRoot, raw);
+    if (!fs.existsSync(certPath)) {
+        throw new Error(`DB_SSL_CA файл не знайдено: ${certPath}`);
+    }
+
+    return fs.readFileSync(certPath);
+}
+
+const sslCa = readSslCa();
+const poolConfig = {
     host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
+    port: Number(process.env.DB_PORT) || 3306,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE,
     waitForConnections: true,
-    connectionLimit: 20,
+    connectionLimit: process.env.VERCEL ? 5 : 20,
     queueLimit: 0,
-    ssl: {
-        ca: caCert,
-        rejectUnauthorized: true
-    }
-});
+};
 
-console.log("Connection pool created successfully.");
-
-// Перевірка підключення до бази даних
-(async () => {
-    try {
-        const connection = await pool.getConnection();
-        console.log("Successfully connected to the database.");
-        connection.release();
-    } catch (error) {
-        console.error("Error connecting to the database:", error);
-    }
-})();
-
-// Функція для виконання запитів
-async function query(sql, params) {
-    console.log(`Executing SQL: ${sql}`);
-    try {
-        const [results] = await pool.query(sql, params);
-        console.log("SQL executed successfully.");
-        return results;
-    } catch (error) {
-        console.error("Error executing SQL:", error);
-        throw error;
-    }
+if (sslCa) {
+    poolConfig.ssl = {
+        ca: sslCa,
+        rejectUnauthorized: true,
+    };
 }
 
-// Функція для закриття пулу з'єднань
+const pool = mysql.createPool(poolConfig);
+
+async function query(sql, params) {
+    const [results] = await pool.query(sql, params);
+    return results;
+}
+
 async function closePool() {
-    console.log("Closing connection pool...");
-    try {
-        await pool.end();
-        console.log("Connection pool closed.");
-    } catch (error) {
-        console.error("Error closing connection pool:", error);
-    }
+    await pool.end();
 }
 
 module.exports = {
     query,
-    closePool
+    closePool,
 };
-
-// Перевірка з'єднання та виконання простого запиту
-(async () => {
-    try {
-        console.log("Testing database connection...");
-        const result = await query('SELECT 1');
-        console.log("Database connection test successful:", result);
-    } catch (error) {
-        console.error("Database connection test failed:", error);
-    }
-})();

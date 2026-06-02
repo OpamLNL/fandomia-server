@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "start": "node ./src/server.js",
+    "dev": "node ./src/server.js",
     "db:reset": "node ./src/migrations/init-db.js"
   },
   "dependencies": {
