@@ -6,6 +6,7 @@ const imgbbService = require('./imgbbService');
 const workRepository = require('../repositories/workRepository');
 const workImageRepository = require('../repositories/workImageRepository');
 const chapterRepository = require('../repositories/chapterRepository');
+const { isServerlessUploads } = require('../utils/uploadPaths');
 
 const checkBlockedUser = (user) => {
     if (user?.is_blocked) {
@@ -21,6 +22,18 @@ const getWorkOrFail = async (workId) => {
     }
 
     return work;
+};
+
+const readChapterContentFromFile = (contentPath) => {
+    if (!contentPath) return null;
+
+    const absolutePath = path.resolve(__dirname, '..', '..', contentPath.replace(/^\/+/, ''));
+
+    if (!fs.existsSync(absolutePath)) {
+        return null;
+    }
+
+    return fs.readFileSync(absolutePath, 'utf8');
 };
 
 const uploadWorkImages = async (workId, files, user) => {
@@ -62,18 +75,24 @@ const createWorkChapter = async (workId, { title, content, order_index }, user) 
         throw new Error('Текст розділу обовʼязковий');
     }
 
-    const chapterFile = await fileUploadService.saveWorkChapter(
-        workId,
-        title || 'Розділ',
-        content,
-        order_index || 0
-    );
+    let content_path = '';
+
+    if (!isServerlessUploads()) {
+        const chapterFile = await fileUploadService.saveWorkChapter(
+            workId,
+            title || 'Розділ',
+            content,
+            order_index || 0
+        );
+        content_path = chapterFile.content_path;
+    }
 
     return await chapterRepository.createChapter({
         work_id: workId,
-        title: chapterFile.title,
-        content_path: chapterFile.content_path,
-        order_index: chapterFile.order_index
+        title: title || 'Розділ',
+        content_path,
+        content: content.trim(),
+        order_index: order_index || 0,
     });
 };
 
@@ -94,18 +113,30 @@ const getChapterContent = async (chapterId) => {
         throw new Error('Розділ не знайдено');
     }
 
-    const absolutePath = path.resolve(__dirname, '..', '..', chapter.content_path.replace(/^\/+/, ''));
-
-    if (!fs.existsSync(absolutePath)) {
-        throw new Error('Файл розділу не знайдено');
+    if (chapter.content?.trim()) {
+        return {
+            ...chapter,
+            content: chapter.content,
+        };
     }
 
-    const content = fs.readFileSync(absolutePath, 'utf8');
+    const fileContent = readChapterContentFromFile(chapter.content_path);
 
-    return {
-        ...chapter,
-        content
-    };
+    if (fileContent != null) {
+        await chapterRepository.updateChapter(chapterId, {
+            title: chapter.title,
+            content_path: chapter.content_path,
+            content: fileContent,
+            order_index: chapter.order_index || 0,
+        });
+
+        return {
+            ...chapter,
+            content: fileContent,
+        };
+    }
+
+    throw new Error('Текст розділу недоступний. Відредагуй розділ і збережи знову.');
 };
 
 const updateChapterContent = async (chapterId, { title, content, order_index }, user) => {
@@ -121,20 +152,29 @@ const updateChapterContent = async (chapterId, { title, content, order_index }, 
         throw new Error('Текст розділу обовʼязковий');
     }
 
-    const savedChapter = await fileUploadService.saveWorkChapter(
-        chapter.work_id,
-        title || chapter.title || 'Розділ',
-        content,
-        order_index || chapter.order_index || 0
-    );
+    let content_path = chapter.content_path || '';
 
-    await chapterRepository.updateChapter(chapterId, {
-        title: savedChapter.title,
-        content_path: savedChapter.content_path,
-        order_index: savedChapter.order_index
+    if (!isServerlessUploads()) {
+        const savedChapter = await fileUploadService.saveWorkChapter(
+            chapter.work_id,
+            title || chapter.title || 'Розділ',
+            content,
+            order_index ?? chapter.order_index ?? 0
+        );
+        content_path = savedChapter.content_path;
+    }
+
+    const updated = await chapterRepository.updateChapter(chapterId, {
+        title: title || chapter.title || 'Розділ',
+        content_path,
+        content: content.trim(),
+        order_index: order_index ?? chapter.order_index ?? 0,
     });
 
-    return await getChapterContent(chapterId);
+    return {
+        ...updated,
+        content: content.trim(),
+    };
 };
 
 const deleteWorkImage = async (imageId) => {
@@ -164,10 +204,12 @@ const deleteChapter = async (chapterId) => {
         throw new Error('Розділ не знайдено');
     }
 
-    const absolutePath = path.resolve(__dirname, '..', '..', chapter.content_path.replace(/^\/+/, ''));
+    if (chapter.content_path) {
+        const absolutePath = path.resolve(__dirname, '..', '..', chapter.content_path.replace(/^\/+/, ''));
 
-    if (fs.existsSync(absolutePath)) {
-        fs.unlinkSync(absolutePath);
+        if (fs.existsSync(absolutePath)) {
+            fs.unlinkSync(absolutePath);
+        }
     }
 
     return await chapterRepository.deleteChapter(chapterId);
@@ -181,5 +223,5 @@ module.exports = {
     getChapterContent,
     updateChapterContent,
     deleteWorkImage,
-    deleteChapter
+    deleteChapter,
 };
