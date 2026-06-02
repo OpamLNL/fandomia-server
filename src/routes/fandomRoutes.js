@@ -5,6 +5,7 @@ const fandomController = require('../controllers/fandomController');
 const firebaseAuthMiddleware = require('../middlewares/firebaseAuthMiddleware');
 const optionalFirebaseAuth = require('../middlewares/optionalFirebaseAuth');
 const { isModeratorOrAdmin } = require('../middlewares/roleMiddleware');
+const { uploadImages } = require('../middlewares/uploadMiddleware');
 
 const asyncHandler = (fn) => (req, res, next) => {
     Promise.resolve(fn(req, res, next)).catch(next);
@@ -35,6 +36,14 @@ router.put(
     firebaseAuthMiddleware,
     isModeratorOrAdmin,
     asyncHandler(fandomController.updateFandom)
+);
+
+router.post(
+    '/:id/cover',
+    firebaseAuthMiddleware,
+    isModeratorOrAdmin,
+    uploadImages.single('cover'),
+    asyncHandler(fandomController.uploadFandomCover)
 );
 
 router.delete(

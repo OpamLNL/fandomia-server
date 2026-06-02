@@ -45,6 +45,10 @@ const MEDIA_FIELD_KEYS = new Set([
 ]);
 
 function rewriteMediaFields(value, key = '') {
+    if (value instanceof Date) {
+        return value;
+    }
+
     if (typeof value === 'string' && MEDIA_FIELD_KEYS.has(key)) {
         return resolvePublicMediaUrl(value);
     }

@@ -91,6 +91,15 @@ const deleteFandom = async (req, res) => {
     }
 };
 
+const uploadFandomCover = async (req, res) => {
+    try {
+        const fandom = await fandomService.uploadFandomCover(req.params.id, req.file);
+        res.json(fandom);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
 module.exports = {
     getAllFandoms,
     getFandomById,
@@ -101,5 +110,6 @@ module.exports = {
     getFandomStats,
     createFandom,
     updateFandom,
-    deleteFandom
+    deleteFandom,
+    uploadFandomCover,
 };

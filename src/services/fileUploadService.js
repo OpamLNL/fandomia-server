@@ -9,6 +9,8 @@ const getUserFolder = (userId) => ensureUploadDir('users', String(userId));
 
 const getWorkChaptersFolder = (workId) => ensureUploadDir('works', String(workId), 'chapters');
 
+const getFandomCoversFolder = () => ensureUploadDir('fandoms');
+
 const getPublicPath = (absolutePath) => {
     const root = path.resolve(__dirname, '..', '..');
     const uploadsRoot = getUploadsRoot();
@@ -68,6 +70,24 @@ const saveUserAvatar = async (userId, file) => {
     };
 };
 
+const saveFandomCover = async (fandomId, file) => {
+    if (imgbbService.isConfigured()) {
+        return await imgbbService.uploadImageFile(file, `fandom-${fandomId}`);
+    }
+
+    const fandomDir = getFandomCoversFolder();
+    const ext = path.extname(file.originalname) || '.jpg';
+    const fileName = `${fandomId}${ext}`;
+    const filePath = path.join(fandomDir, fileName);
+
+    fs.renameSync(file.path, filePath);
+
+    return {
+        url: getPublicPath(filePath),
+        deleteUrl: null,
+    };
+};
+
 const saveWorkChapter = async (workId, title, content, orderIndex) => {
     const chaptersDir = getWorkChaptersFolder(workId);
     const fileName = `${orderIndex || Date.now()}.md`;
@@ -85,5 +105,6 @@ const saveWorkChapter = async (workId, title, content, orderIndex) => {
 module.exports = {
     saveWorkImage,
     saveUserAvatar,
+    saveFandomCover,
     saveWorkChapter,
 };

@@ -1,6 +1,7 @@
 const fandomRepository = require('../repositories/fandomRepository');
 const workService = require('./workService');
 const postService = require('./postService');
+const fileUploadService = require('./fileUploadService');
 
 const getAllFandoms = async () => {
     return await fandomRepository.getAllFandoms();
@@ -104,6 +105,26 @@ const deleteFandom = async (id) => {
     return await fandomRepository.deleteFandom(id);
 };
 
+const uploadFandomCover = async (id, file) => {
+    const existing = await fandomRepository.getFandomById(id);
+
+    if (!existing) {
+        throw new Error('Фандом не знайдено');
+    }
+
+    if (!file) {
+        throw new Error('Файл обкладинки не передано');
+    }
+
+    const uploaded = await fileUploadService.saveFandomCover(id, file);
+
+    return await fandomRepository.updateFandom(id, {
+        name: existing.name,
+        description: existing.description,
+        cover_image: uploaded.url,
+    });
+};
+
 module.exports = {
     getAllFandoms,
     getFandomById,
@@ -114,5 +135,6 @@ module.exports = {
     getFandomStats,
     createFandom,
     updateFandom,
-    deleteFandom
+    deleteFandom,
+    uploadFandomCover,
 };
