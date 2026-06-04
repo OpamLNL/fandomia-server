@@ -1,6 +1,8 @@
 const swaggerJsdoc = require('swagger-jsdoc');
-const swaggerUi = require('swagger-ui-express');
 const swaggerOptions = require('./swaggerOptions');
+
+const SWAGGER_UI_VERSION = '5.20.1';
+const SWAGGER_CDN = `https://cdn.jsdelivr.net/npm/swagger-ui-dist@${SWAGGER_UI_VERSION}`;
 
 function resolvePublicBaseUrl(req) {
     if (process.env.API_PUBLIC_URL) {
@@ -28,33 +30,47 @@ function buildSwaggerSpec(req) {
     return swaggerJsdoc(options);
 }
 
-function isServerlessDeploy() {
-    return Boolean(process.env.VERCEL || process.env.VERCEL_URL || process.env.AWS_LAMBDA_FUNCTION_NAME);
-}
+/**
+ * Власна HTML-сторінка: swagger-ui-express за замовчуванням тягне ./swagger-ui-*.js,
+ * на /api/docs без слеша браузер запитує /api/swagger-ui-bundle.js → 404 на Vercel.
+ */
+function renderSwaggerDocsHtml(specObject) {
+    const specJson = JSON.stringify(specObject).replace(/</g, '\\u003c');
 
-function buildSwaggerUiSetupOptions() {
-    const options = {
-        explorer: true,
-        customSiteTitle: 'Fandomia API',
-        customCss: '.swagger-ui .topbar { display: none }',
-        swaggerOptions: {
-            persistAuthorization: true,
-        },
+    return `<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Fandomia API — Swagger</title>
+  <link rel="stylesheet" href="${SWAGGER_CDN}/swagger-ui.css"/>
+  <link rel="icon" href="${SWAGGER_CDN}/favicon-32x32.png"/>
+  <style>
+    html { box-sizing: border-box; overflow-y: scroll; }
+    *, *:before, *:after { box-sizing: inherit; }
+    body { margin: 0; background: #fafafa; }
+    .swagger-ui .topbar { display: none; }
+  </style>
+</head>
+<body>
+  <div id="swagger-ui"></div>
+  <script src="${SWAGGER_CDN}/swagger-ui-bundle.js"></script>
+  <script src="${SWAGGER_CDN}/swagger-ui-standalone-preset.js"></script>
+  <script>
+    window.onload = function () {
+      window.ui = SwaggerUIBundle({
+        spec: ${specJson},
+        dom_id: '#swagger-ui',
+        deepLinking: true,
+        presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+        plugins: [SwaggerUIBundle.plugins.DownloadUrl],
+        layout: 'StandaloneLayout',
+        persistAuthorization: true,
+      });
     };
-
-    // На Vercel локальні swagger-ui-dist дають 404 → HTML замість JS (Unexpected token '<').
-    if (isServerlessDeploy()) {
-        const swaggerUiVersion = '5.20.1';
-        const swaggerCdn = `https://cdn.jsdelivr.net/npm/swagger-ui-dist@${swaggerUiVersion}`;
-        options.customCssUrl = `${swaggerCdn}/swagger-ui.css`;
-        options.customJs = [
-            `${swaggerCdn}/swagger-ui-bundle.js`,
-            `${swaggerCdn}/swagger-ui-standalone-preset.js`,
-        ];
-        options.customfavIcon = `${swaggerCdn}/favicon-32x32.png`;
-    }
-
-    return options;
+  </script>
+</body>
+</html>`;
 }
 
 function setupSwagger(app) {
@@ -63,7 +79,6 @@ function setupSwagger(app) {
         res.send(buildSwaggerSpec(req));
     });
 
-    /** Запасний варіант, якщо UI на serverless не відкривається — Swagger Editor зі spec URL. */
     app.get('/api/docs/open', (req, res) => {
         const baseUrl = resolvePublicBaseUrl(req);
         const specUrl = `${baseUrl}/api/docs/swagger.json`;
@@ -71,16 +86,13 @@ function setupSwagger(app) {
         res.redirect(302, editorUrl);
     });
 
-    const setupHandler = (req, res, next) => {
+    const sendDocsPage = (req, res) => {
         const spec = buildSwaggerSpec(req);
-        swaggerUi.setup(spec, buildSwaggerUiSetupOptions())(req, res, next);
+        res.type('html').send(renderSwaggerDocsHtml(spec));
     };
 
-    if (isServerlessDeploy()) {
-        app.use('/api/docs', setupHandler);
-    } else {
-        app.use('/api/docs', swaggerUi.serve, setupHandler);
-    }
+    app.get('/api/docs', sendDocsPage);
+    app.get('/api/docs/', sendDocsPage);
 }
 
 module.exports = {
