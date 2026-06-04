@@ -28,27 +28,59 @@ function buildSwaggerSpec(req) {
     return swaggerJsdoc(options);
 }
 
+function isServerlessDeploy() {
+    return Boolean(process.env.VERCEL || process.env.VERCEL_URL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+}
+
+function buildSwaggerUiSetupOptions() {
+    const options = {
+        explorer: true,
+        customSiteTitle: 'Fandomia API',
+        customCss: '.swagger-ui .topbar { display: none }',
+        swaggerOptions: {
+            persistAuthorization: true,
+        },
+    };
+
+    // На Vercel локальні swagger-ui-dist дають 404 → HTML замість JS (Unexpected token '<').
+    if (isServerlessDeploy()) {
+        const swaggerUiVersion = '5.20.1';
+        const swaggerCdn = `https://cdn.jsdelivr.net/npm/swagger-ui-dist@${swaggerUiVersion}`;
+        options.customCssUrl = `${swaggerCdn}/swagger-ui.css`;
+        options.customJs = [
+            `${swaggerCdn}/swagger-ui-bundle.js`,
+            `${swaggerCdn}/swagger-ui-standalone-preset.js`,
+        ];
+        options.customfavIcon = `${swaggerCdn}/favicon-32x32.png`;
+    }
+
+    return options;
+}
+
 function setupSwagger(app) {
     app.get('/api/docs/swagger.json', (req, res) => {
         res.setHeader('Content-Type', 'application/json');
         res.send(buildSwaggerSpec(req));
     });
 
-    app.use(
-        '/api/docs',
-        swaggerUi.serve,
-        (req, res, next) => {
-            const spec = buildSwaggerSpec(req);
-            swaggerUi.setup(spec, {
-                explorer: true,
-                customSiteTitle: 'Fandomia API',
-                customCss: '.swagger-ui .topbar { display: none }',
-                swaggerOptions: {
-                    persistAuthorization: true,
-                },
-            })(req, res, next);
-        }
-    );
+    /** Запасний варіант, якщо UI на serverless не відкривається — Swagger Editor зі spec URL. */
+    app.get('/api/docs/open', (req, res) => {
+        const baseUrl = resolvePublicBaseUrl(req);
+        const specUrl = `${baseUrl}/api/docs/swagger.json`;
+        const editorUrl = `https://editor.swagger.io/?url=${encodeURIComponent(specUrl)}`;
+        res.redirect(302, editorUrl);
+    });
+
+    const setupHandler = (req, res, next) => {
+        const spec = buildSwaggerSpec(req);
+        swaggerUi.setup(spec, buildSwaggerUiSetupOptions())(req, res, next);
+    };
+
+    if (isServerlessDeploy()) {
+        app.use('/api/docs', setupHandler);
+    } else {
+        app.use('/api/docs', swaggerUi.serve, setupHandler);
+    }
 }
 
 module.exports = {
