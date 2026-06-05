@@ -4,6 +4,11 @@
   "scripts": {
     "start": "node ./src/server.js",
     "dev": "node ./src/server.js",
+    "test": "jest --config jest.config.prod.js",
+    "test:prod": "jest --config jest.config.prod.js",
+    "test:local": "jest",
+    "test:watch": "jest --config jest.config.prod.js --watch",
+    "test:cov": "jest --coverage",
     "db:reset": "node ./src/migrations/init-db.js",
     "migrate:imgbb": "node ./scripts/migrate-local-media-to-imgbb.js",
     "media:public": "node ./scripts/replace-local-media-with-public-urls.js"
@@ -23,5 +28,9 @@
     "mysql2": "^3.9.6",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0"
   }
 }
